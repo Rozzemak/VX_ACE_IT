@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Net.Mime;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -10,6 +11,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
+using VX_ACE_IT_CORE.Debug;
+using VX_ACE_IT_CORE.MVC.Model.Async;
+
 
 namespace VX_ACE_IT_CORE.MVC._Common
 {
@@ -131,43 +135,60 @@ namespace VX_ACE_IT_CORE.MVC._Common
         }
     }
 
-    public class Config
+    public class Config : BaseAsync<object>
     {
 
         public ConfigVariables ConfigVariables = new ConfigVariables();
 
         public const string ConfigFileName = "Config.xml";
 
-        public Config(int width = 1280, int height = 720, string processName = "game", bool windowBorder = true, bool forceRes = true)
+        private XmlSerializer xmlSerializer = new XmlSerializer(typeof(ConfigVariables));
+        private TextWriter _writer;
+        private XmlReader _xmlReader;
+
+        public Config(BaseDebug debug, int width = 1280, int height = 720, string processName = "game", bool windowBorder = true, bool forceRes = true)
+            : base(debug, null)
         {
-            if (File.Exists(ConfigFileName) && CheckConfigIntegrity())
+            AddWork(new Task<List<object>>(() =>
             {
-                LoadXmlConfig();
-                ConfigVariables.IsInitial = false;
-            }
-            else
-            {
-                ConfigVariables.Width = width;
-                ConfigVariables.Height = height;
-                ConfigVariables.ProcessName = processName;
-                ConfigVariables.IsWindowBorder = windowBorder;
-                ConfigVariables.IsForceRes = forceRes;
-                ReplaceXmlConfig();
-            }
-            ConfigVariables.PropertyChanged += ConfigVariables_PropertyChanged;
+                if (File.Exists(ConfigFileName) && CheckConfigIntegrity())
+                {
+                    LoadXmlConfig();
+                    ConfigVariables.IsInitial = false;
+                }
+                else
+                {
+                    ConfigVariables.Width = width;
+                    ConfigVariables.Height = height;
+                    ConfigVariables.ProcessName = processName;
+                    ConfigVariables.IsWindowBorder = windowBorder;
+                    ConfigVariables.IsForceRes = forceRes;
+                    ReplaceXmlConfig();
+                }
+                ConfigVariables.PropertyChanged += ConfigVariables_PropertyChanged;
+                return null;
+            }));
         }
 
-        public Config(bool diff)
+        public Config(BaseDebug debug, bool diff)
+        : base(debug, null)
         {
-            if (File.Exists(ConfigFileName) && CheckConfigIntegrity())
+            AddWork(new Task<List<object>>(() =>
             {
-                LoadXmlConfig();
-            }
-            else
-            {
-                CreateAndSaveDefaultXmlConfig();
-            }
-            ConfigVariables.PropertyChanged += ConfigVariables_PropertyChanged;
+                lock (xmlSerializer)
+                {
+                    if (File.Exists(ConfigFileName) && CheckConfigIntegrity())
+                    {
+                        LoadXmlConfig();
+                    }
+                    else
+                    {
+                        CreateAndSaveDefaultXmlConfig();
+                    }
+                    ConfigVariables.PropertyChanged += ConfigVariables_PropertyChanged;
+                }
+                return null;
+            }));
         }
 
         private void ConfigVariables_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -177,50 +198,80 @@ namespace VX_ACE_IT_CORE.MVC._Common
 
         public void CreateAndSaveDefaultXmlConfig()
         {
-            XmlSerializer x = new XmlSerializer(typeof(ConfigVariables));
-            TextWriter writer = new StreamWriter(ConfigFileName, false);
-            ConfigVariables = new ConfigVariables();
-            x.Serialize(writer, ConfigVariables);
-            writer.Close();
+            AddWork(new Task<List<object>>(() =>
+            {
+                lock (xmlSerializer)
+                {
+                    ConfigVariables = new ConfigVariables();
+                    _writer = new StreamWriter(ConfigFileName, false);
+                    xmlSerializer.Serialize(_writer, ConfigVariables);
+                    _writer.Close();
+                    _writer.Dispose();
+                }
+                return null;
+            }));
         }
 
         public void ReplaceXmlConfig()
         {
-            XmlSerializer x = new XmlSerializer(typeof(ConfigVariables));
-            TextWriter writer = new StreamWriter(ConfigFileName, false);
-            x.Serialize(writer, this.ConfigVariables);
-            writer.Close();
+            AddWork(new Task<List<object>>(() =>
+            {
+                lock (xmlSerializer)
+                {
+                    _writer = new StreamWriter(ConfigFileName, false);
+                    xmlSerializer.Serialize(_writer, this.ConfigVariables);
+                    _writer.Close();
+                    _writer.Dispose();
+                }
+                return null;
+            }));
         }
 
         public void LoadXmlConfig()
         {
-            if (CheckConfigIntegrity())
+            AddWork(new Task<List<object>>(() =>
             {
-                XmlSerializer cvars = new XmlSerializer(typeof(ConfigVariables));
-                XmlReader reader = XmlReader.Create(ConfigFileName);
-                // Just whatever the exception is, the xml file is damaged, user will be asked to remove it.
-                try
-                {
-                    ConfigVariables = (ConfigVariables)cvars.Deserialize(reader);
-                }
-                catch (Exception e)
-                {
-                    MessageBox.Show("Your Config.xml is damaged.\nRemove it.");
-                    throw;
-                }
-            }
-            else
-            {
-                MessageBox.Show("Your Config.xml is damaged.\n It is goona be rapla it.");
 
-            }
+                if (CheckConfigIntegrity())
+                {
+                    _xmlReader = XmlReader.Create(ConfigFileName);
+                    // Just whatever the exception is, the xml file is damaged, user will be asked to remove it.
+                    try
+                    {
+                        ConfigVariables = (ConfigVariables)xmlSerializer.Deserialize(_xmlReader);
+                    }
+                    catch (Exception e)
+                    {
+                        MessageBox.Show("Your Config.xml is damaged.\nRemove it.");
+                        throw;
+                    }
+                    _xmlReader.Dispose();
+                }
+                else
+                {
+                    MessageBox.Show("Your Config.xml is damaged.\n It is goona be rapla it.");
+
+                }
+                return null;
+            }));
         }
 
         public bool CheckConfigIntegrity()
         {
-            XmlSerializer x = new XmlSerializer(typeof(ConfigVariables));
-            XmlReader reader = XmlReader.Create(ConfigFileName);
-            return x.CanDeserialize(reader);
+            Task<List<object>> tsk = new Task<List<object>>(() =>
+            {
+
+                lock (xmlSerializer)
+                {
+                    _xmlReader = XmlReader.Create(ConfigFileName);
+                    var b = xmlSerializer.CanDeserialize(_xmlReader);
+                    _xmlReader.Dispose();
+                    return new List<object>() { b };
+                }
+            });
+            AddWork(tsk);
+
+            return ((bool)ResultHandler(tsk).First());
         }
 
     }

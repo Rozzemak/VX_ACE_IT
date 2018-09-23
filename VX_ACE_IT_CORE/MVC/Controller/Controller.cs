@@ -1,19 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
+using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
 using VX_ACE_IT_CORE.MVC.Model.GameWindow;
 using VX_ACE_IT_CORE.MVC._Common;
 
 namespace VX_ACE_IT_CORE.MVC.Controller
 {
-    public  class Controller
+    public class Controller
     {
         private readonly GameWindow _gameWindow;
+        private readonly Config _config;
 
-        public Controller(Config config)
+        public readonly GameProcess GameProcess;
+
+        public Controller(BaseDebug debug, Config config)
         {
-            _gameWindow = new GameWindow(new GameProcess(config.ConfigVariables.ProcessName), config);
+            this._config = config;
+            GameProcess = new GameProcess(debug);
+            _gameWindow = new GameWindow(debug, config, GameProcess);
         }
 
         public void SetWindowPosFromConfig()
@@ -33,5 +41,7 @@ namespace VX_ACE_IT_CORE.MVC.Controller
                     break;
             }
         }
+
+
     }
 }

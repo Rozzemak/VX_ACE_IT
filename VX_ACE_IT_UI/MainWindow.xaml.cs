@@ -20,6 +20,7 @@ using System.Windows.Shapes;
 using VX_ACE_IT_CORE;
 using VX_ACE_IT_CORE.MVC.Model.GameWindow;
 using VX_ACE_IT_CORE.MVC._Common;
+using VX_ACE_IT_CORE.Debug;
 
 namespace VX_ACE_IT_UI
 {
@@ -29,7 +30,8 @@ namespace VX_ACE_IT_UI
     public partial class MainWindow : Window
     {
         private Config config;
-        private Core core;
+        private Core _core;
+        private BaseDebug debug = new BaseDebug();
 
         public MainWindow()
         {
@@ -39,33 +41,78 @@ namespace VX_ACE_IT_UI
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            config = new Config(debug);
 
-            config = new Config();
-            if (!config.ConfigVariables.IsInitial)
+            App.Current.Dispatcher.Invoke(() =>
             {
-                CloseAllDialogs();
-                RootLogicStackPanel.Visibility = Visibility.Visible;
-            }
+                if (!config.ConfigVariables.IsInitial)
+                {
+                    CloseAllDialogs();
+                    RootLogicStackPanel.Visibility = Visibility.Visible;
+                }
+                ForceExitButtonsColors();
+            });
+            _core = new Core(debug, config);
+            SubscribeEvents(_core);            
 
-            ForceExitButtonsColors();
-            core = new Core(config);
+            _core._controller.GameProcess.FetchProcess(config.ConfigVariables.ProcessName);
+        }
+
+        private void SubscribeEvents(Core core)
+        {
+            core._controller.GameProcess.OnProcessFound += OnProcessFound;
+            core._controller.GameProcess.OnNoProcessFound += OnNoProcessFound;
+            core._controller.GameProcess.OnKill += GameProcess_OnKill;
+        }
+
+        private void GameProcess_OnKill(object sender, EventArgs e)
+        {
+            ShowWelcomeScreen();
+            MainWindow_Loaded(this, null);
+        }
+
+        private void OnNoProcessFound(object sender, EventArgs eventArgs)
+        {
+            ShowWelcomeScreen();
+        }
+
+        private void OnProcessFound(object sender, EventArgs eventArgs)
+        {
+            CloseAllDialogs();
+            ShowDefaultRootLogicStackPanel();
+        }
+
+        private void ShowWelcomeScreen()
+        {
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                RootLogicStackPanel.Visibility = Visibility.Collapsed;
+                DimmGrid.Visibility = Visibility.Visible;
+                WelcomeStackPanel.Visibility = Visibility.Visible;
+            });
         }
 
         private void InjectButton_Click(object sender, RoutedEventArgs e)
         {
-            core._controller.SetWindowPosFromConfig();
+            _core._controller.SetWindowPosFromConfig();
         }
 
         private void CloseAllDialogs()
         {
-            WelcomeStackPanel.Visibility = Visibility.Collapsed;
-            DimmGrid.Visibility = Visibility.Collapsed;
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                WelcomeStackPanel.Visibility = Visibility.Collapsed;
+                DimmGrid.Visibility = Visibility.Collapsed;
+            });
         }
 
         private void ShowDefaultRootLogicStackPanel()
         {
-            RootLogicStackPanel.Visibility = Visibility.Visible;
-            ForceExitButtonsColors();
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                RootLogicStackPanel.Visibility = Visibility.Visible;
+                ForceExitButtonsColors();
+            });
         }
 
         private void WelcomeConfigButton_Click(object sender, RoutedEventArgs e)
@@ -93,8 +140,8 @@ namespace VX_ACE_IT_UI
                     IsInitial = false, IsWindowBorder = WelcomeBorder.IsChecked.Value, ProcessName = WelcomeProcessNameTextBox.Text};
                 config.ReplaceXmlConfig();
                 CloseAllDialogs();
-                core._controller.SetWindowStyle(config.ConfigVariables.IsWindowBorder ? WindowStyles.NoBorder : WindowStyles.Border);
-                ShowDefaultRootLogicStackPanel();
+                _core._controller.GameProcess.FetchProcess(config.ConfigVariables.ProcessName);
+                //core._controller.SetWindowStyle(config.ConfigVariables.IsWindowBorder ? WindowStyles.NoBorder : WindowStyles.Border);
             }
             else
             {

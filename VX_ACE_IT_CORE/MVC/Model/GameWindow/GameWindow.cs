@@ -2,8 +2,12 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
+using VX_ACE_IT_CORE.Debug;
+using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC._Common;
+using VX_ACE_IT_CORE.MVC.Model.GameProcess;
 
 namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
 {
@@ -13,7 +17,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
         NoBorder,
     }
 
-    class GameWindow
+    class GameWindow : BaseAsync<object>
     {
         public static int GwlStyle = -16;
         public static int WsBorder = 0x00800000; //window with border
@@ -21,38 +25,49 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
         public static int WsCaption = WsBorder | WsDlgframe; //window with a title bar
         public const uint WsSizebox = 0x00040000;
 
-
         private readonly Config _config;
-        private readonly GameProcess.GameProcess _gameProcess;
 
-        public GameWindow(GameProcess.GameProcess gameProcess, Config config)
+        public GameWindow(BaseDebug debug, Config config, GameProcess.GameProcess gameProcess)
+                    :base(debug, gameProcess)
         {
-            _gameProcess = gameProcess;
             _config = config;
         }
-            
+
         public void SetWindowFromConfig()
         {
-            SetForegroundWindow(_gameProcess.Process.MainWindowHandle);
-            ShowWindowAsync(_gameProcess.Process.MainWindowHandle, 9);
-            SetWindowPos(_gameProcess.Process.MainWindowHandle, new IntPtr(-2), 0, 0, _config.ConfigVariables.Width, _config.ConfigVariables.Height, 0);
+            AddWork(new Task<List<object>>(() =>
+            {
+                SetForegroundWindow(GameProcess.Process.MainWindowHandle);
+                ShowWindowAsync(GameProcess.Process.MainWindowHandle, 9);
+                SetWindowPos(GameProcess.Process.MainWindowHandle, new IntPtr(-2), 0, 0, _config.ConfigVariables.Width, _config.ConfigVariables.Height, 0);
+                return null;
+            }));
+
         }
 
         public void SetWindowStyle(int? style = null)
         {
-            IntPtr hwnd = _gameProcess.Process.MainWindowHandle;
-            SetForegroundWindow(hwnd);
-            ShowWindowAsync(hwnd, 9);
-            SetWindowLong(hwnd, GwlStyle, GetWindowLong(hwnd, style ?? -16) & ~WsCaption);
+            AddWork(new Task<List<object>>(() =>
+            {
+                IntPtr hwnd = GameProcess.Process.MainWindowHandle;
+                SetForegroundWindow(hwnd);
+                ShowWindowAsync(hwnd, 9);
+                SetWindowLong(hwnd, GwlStyle, GetWindowLong(hwnd, style ?? -16) & ~WsCaption);
+                return null;
+            }));
         }
 
 
         public void SetWindowStyleBorder(int? style = null)
         {
-            IntPtr hwnd = _gameProcess.Process.MainWindowHandle;
-            SetForegroundWindow(hwnd);
-            ShowWindowAsync(hwnd, 9);
-            SetWindowLong(hwnd, GwlStyle, GetWindowLong(hwnd, style ?? -16) | WsCaption);
+            AddWork(new Task<List<object>>(() =>
+            {
+                IntPtr hwnd = GameProcess.Process.MainWindowHandle;
+                SetForegroundWindow(hwnd);
+                ShowWindowAsync(hwnd, 9);
+                SetWindowLong(hwnd, GwlStyle, GetWindowLong(hwnd, style ?? -16) | WsCaption);
+                return null;
+            }));
         }
 
 
@@ -70,5 +85,6 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
 
         [DllImport("user32.dll")]
         private static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+
     }
 }
