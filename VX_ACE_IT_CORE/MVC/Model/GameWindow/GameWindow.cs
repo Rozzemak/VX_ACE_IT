@@ -70,7 +70,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
             }));
         }
 
-
+       
         [DllImport("user32.dll", SetLastError = true)]
         static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, int uFlags);
 

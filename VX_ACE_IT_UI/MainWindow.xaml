@@ -56,7 +56,10 @@
         </StackPanel>
         <StackPanel Name="RootLogicStackPanel" Visibility="Collapsed">
             <Button Name="InjectButton" Content="Inject" HorizontalAlignment="Left" Margin="38,26,0,0" VerticalAlignment="Top" Width="75" Click="InjectButton_Click"/>
-            <Button Name="RPMButton" Content="RPM" HorizontalAlignment="Left" Margin="38,26,0,0" VerticalAlignment="Top" Width="75" Click="RPMButton_OnClick"/>
+            <DockPanel HorizontalAlignment="Left" Width="200">
+                <Button Name="RPMButton" Content="RPM" HorizontalAlignment="Left" Margin="38,26,0,0" VerticalAlignment="Top" Width="75" Click="RPMButton_OnClick"/>
+                <TextBox Name="AdressTextBox"></TextBox>
+            </DockPanel>
         </StackPanel>
         <Grid Name="DimmGrid" ZIndex="-1" Background="{DynamicResource MaterialDesignDarkBackground}" ></Grid>
         <Grid ZIndex="1000" Name="ExitGrid">

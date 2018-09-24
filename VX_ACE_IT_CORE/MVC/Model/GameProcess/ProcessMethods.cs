@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -14,18 +15,34 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
             this._gameProcess = gameProcess;
         }
 
-        public T RPM<T>(IntPtr lpBaseAddress, int byteSize = 4)
+        /// <summary>
+        /// Generic acces to process memory for struct types.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="lpBaseAddress">BaseAdress of wanted memory.</param>
+        /// <returns></returns>
+        public unsafe T Rpm<T>(IntPtr lpBaseAddress) where T : struct 
         {
-            T buffer = default(T);
-            ReadProcessMemory(_gameProcess.Process.Handle, lpBaseAddress, buffer, byteSize, out var bytesread);
-            return buffer;
+            T[] buffer = new T[SizeOf<T>()];
+            ReadProcessMemory(_gameProcess.Process.Handle, lpBaseAddress, buffer, SizeOf<T>(), out var bytesread);
+            return buffer.First(); // [0] would be faster, but First() is safer. Eq of buffer[0] ?? default(T)
         }
 
-        public int RPM(IntPtr lpBaseAddress)
+        /// <summary>
+        /// Example of non-generic acces to proc. mem, significantly faster ? 
+        /// </summary>
+        /// <param name="lpBaseAddress"></param>
+        /// <returns></returns>
+        private int Rpm(IntPtr lpBaseAddress)
         {
             byte[] buffer = new byte[(sizeof(int))];
             ReadProcessMemory(_gameProcess.Process.Handle, lpBaseAddress, buffer, 4, out var bytesread);
             return BitConverter.ToInt32(buffer, 0);
+        }
+
+        public int SizeOf<T>() where T : struct
+        {
+            return Marshal.SizeOf(default(T));
         }
 
         /// <summary>

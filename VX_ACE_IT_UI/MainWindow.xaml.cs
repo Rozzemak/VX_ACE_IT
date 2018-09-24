@@ -184,7 +184,7 @@ namespace VX_ACE_IT_UI
         {
             debug.AddMessage<object>(new Message<object>(
                 //"AdressValue: " + _core._controller.ProcessMethods.RPM<int>(new IntPtr(0x0F6532D0)) +""
-                "AdressValue: " + _core._controller.ProcessMethods.RPM(new IntPtr(0x0F6532D0)) + ""
+                "AdressValue: " + _core._controller.ProcessMethods.Rpm<int>(new IntPtr(Convert.ToUInt32(AdressTextBox.Text, 16))) + ""
                 )); 
         }
     }
