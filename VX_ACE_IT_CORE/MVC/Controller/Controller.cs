@@ -16,12 +16,26 @@ namespace VX_ACE_IT_CORE.MVC.Controller
         private readonly Config _config;
 
         public readonly GameProcess GameProcess;
+        public ProcessMethods ProcessMethods;
 
         public Controller(BaseDebug debug, Config config)
         {
             this._config = config;
             GameProcess = new GameProcess(debug);
             _gameWindow = new GameWindow(debug, config, GameProcess);
+
+            GameProcess.OnNoProcessFound+= GameProcessOnOnNoProcessFound;
+            GameProcess.OnProcessFound += GameProcessOnOnProcessFound;
+        }
+
+        private void GameProcessOnOnProcessFound(object sender, EventArgs eventArgs)
+        {
+            ProcessMethods = new ProcessMethods(GameProcess);
+        }
+
+        private void GameProcessOnOnNoProcessFound(object sender, EventArgs eventArgs)
+        {
+            ProcessMethods = null;
         }
 
         public void SetWindowPosFromConfig()

@@ -179,5 +179,13 @@ namespace VX_ACE_IT_UI
             }).Start();
             
         }
+
+        private void RPMButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            debug.AddMessage<object>(new Message<object>(
+                //"AdressValue: " + _core._controller.ProcessMethods.RPM<int>(new IntPtr(0x0F6532D0)) +""
+                "AdressValue: " + _core._controller.ProcessMethods.RPM(new IntPtr(0x0F6532D0)) + ""
+                )); 
+        }
     }
 }
