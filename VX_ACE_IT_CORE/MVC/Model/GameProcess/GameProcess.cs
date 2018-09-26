@@ -70,6 +70,15 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
             OnKill?.Invoke(this, EventArgs.Empty);
         }
 
+        public ProcessModule GetModuleAddresByName(string name)
+        {
+            foreach (ProcessModule module in _process.Modules)
+            {
+                if (module.ModuleName == name) return module;
+            }
+            return null;
+        }
+
         public bool CheckProcess()
         {
             return _process != null;

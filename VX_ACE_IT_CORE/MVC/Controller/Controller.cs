@@ -6,20 +6,29 @@ using System.Text;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
 using VX_ACE_IT_CORE.MVC.Model.GameWindow;
+using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE;
 using VX_ACE_IT_CORE.MVC._Common;
 
 namespace VX_ACE_IT_CORE.MVC.Controller
 {
     public class Controller
     {
+        private readonly BaseDebug debug;
         private readonly GameWindow _gameWindow;
         private readonly Config _config;
 
         public readonly GameProcess GameProcess;
         public ProcessMethods ProcessMethods;
 
+        #region Modules
+        // Reminder, modules should only use a ProcessMethods,debug, precision.
+        public VxAceModule VxAceModule;
+
+        #endregion
+
         public Controller(BaseDebug debug, Config config)
         {
+            this.debug = debug;
             this._config = config;
             GameProcess = new GameProcess(debug);
             _gameWindow = new GameWindow(debug, config, GameProcess);
@@ -31,12 +40,19 @@ namespace VX_ACE_IT_CORE.MVC.Controller
         private void GameProcessOnOnProcessFound(object sender, EventArgs eventArgs)
         {
             ProcessMethods = new ProcessMethods(GameProcess);
+            InitModules();
         }
 
         private void GameProcessOnOnNoProcessFound(object sender, EventArgs eventArgs)
         {
             ProcessMethods = null;
         }
+
+        private void InitModules()
+        {
+            VxAceModule = new VxAceModule(debug, ProcessMethods, 17);
+        }
+
 
         public void SetWindowPosFromConfig()
         {

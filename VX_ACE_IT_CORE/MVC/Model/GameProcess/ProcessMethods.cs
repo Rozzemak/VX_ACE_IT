@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -8,7 +9,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
 {
     public class ProcessMethods
     {
-        private readonly GameProcess _gameProcess;
+        public readonly GameProcess _gameProcess;
 
         public ProcessMethods(GameProcess gameProcess)
         {
@@ -21,12 +22,29 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
         /// <typeparam name="T"></typeparam>
         /// <param name="lpBaseAddress">BaseAdress of wanted memory.</param>
         /// <returns></returns>
-        public unsafe T Rpm<T>(IntPtr lpBaseAddress) where T : struct 
+        public T Rpm<T>(IntPtr lpBaseAddress) where T : struct
         {
             T[] buffer = new T[SizeOf<T>()];
             ReadProcessMemory(_gameProcess.Process.Handle, lpBaseAddress, buffer, SizeOf<T>(), out var bytesread);
             return buffer.First(); // [0] would be faster, but First() is safer. Eq of buffer[0] ?? default(T)
         }
+
+
+        public T Rpm<T>(IntPtr lpBaseAddress, List<int> offsets) where T : struct
+        {
+            IntPtr address = lpBaseAddress;
+
+            var lastOffset = offsets.Last();
+            offsets.RemoveAt(offsets.Count-1);
+
+            foreach (var offset in offsets)
+            {
+                address = Rpm<IntPtr>(IntPtr.Add(address, offset));
+            }
+
+            return Rpm<T>(IntPtr.Add(address, lastOffset));
+        }
+
 
         /// <summary>
         /// Example of non-generic acces to proc. mem, significantly faster ? 

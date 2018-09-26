@@ -21,6 +21,7 @@ using VX_ACE_IT_CORE;
 using VX_ACE_IT_CORE.MVC.Model.GameWindow;
 using VX_ACE_IT_CORE.MVC._Common;
 using VX_ACE_IT_CORE.Debug;
+using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
 
 namespace VX_ACE_IT_UI
 {
@@ -53,7 +54,7 @@ namespace VX_ACE_IT_UI
                 ForceExitButtonsColors();
             });
             _core = new Core(debug, config);
-            SubscribeEvents(_core);            
+            SubscribeEvents(_core);
 
             _core._controller.GameProcess.FetchProcess(config.ConfigVariables.ProcessName);
         }
@@ -131,13 +132,19 @@ namespace VX_ACE_IT_UI
                 if (m.Success)
                 {
                     width = Math.Abs(int.Parse(m.Groups[1].Value));
-                    height  = Math.Abs(int.Parse(m.Groups[3].Value));
+                    height = Math.Abs(int.Parse(m.Groups[3].Value));
                 }
             }
             if (width != 0 && height != 0)
             {
-                config.ConfigVariables = new ConfigVariables(){Width = width, Height = height,
-                    IsInitial = false, IsWindowBorder = WelcomeBorder.IsChecked.Value, ProcessName = WelcomeProcessNameTextBox.Text};
+                config.ConfigVariables = new ConfigVariables()
+                {
+                    Width = width,
+                    Height = height,
+                    IsInitial = false,
+                    IsWindowBorder = WelcomeBorder.IsChecked.Value,
+                    ProcessName = WelcomeProcessNameTextBox.Text
+                };
                 config.ReplaceXmlConfig();
                 CloseAllDialogs();
                 _core._controller.GameProcess.FetchProcess(config.ConfigVariables.ProcessName);
@@ -177,15 +184,31 @@ namespace VX_ACE_IT_UI
                 Thread.Sleep(10);
                 Environment.Exit(0);
             }).Start();
-            
+
         }
 
         private void RPMButton_OnClick(object sender, RoutedEventArgs e)
         {
-            debug.AddMessage<object>(new Message<object>(
-                //"AdressValue: " + _core._controller.ProcessMethods.RPM<int>(new IntPtr(0x0F6532D0)) +""
-                "AdressValue: " + _core._controller.ProcessMethods.Rpm<int>(new IntPtr(Convert.ToUInt32(AdressTextBox.Text, 16))) + ""
-                )); 
+
+            //debug.AddMessage<object>(new Message<object>(
+            //    //"AdressValue: " + _core._controller.ProcessMethods.RPM<int>(new IntPtr(0x0F6532D0)) +""
+            //    "AdressValue: " + _core._controller.ProcessMethods.Rpm<int>(new IntPtr(Convert.ToUInt32(AdressTextBox.Text, 16))) + ""
+            //    ));
+            //int address = Convert.ToInt32(AdressTextBox.Text,16);
+            new Task(() =>
+            {
+                while (true)
+                {
+                    Thread.Sleep(22);
+                    int i = _core._controller.ProcessMethods.Rpm<int>(
+                         _core._controller.VxAceModule.RgssBase
+                        , new List<int>() { 0x25A8B0, 0x30, 0x18, 0x20, 0x38 });
+                    debug.AddMessage<object>(new Message<object>(
+                        "AdressValue: engine[" + new Numeric<int>(i).EngineValue + "] actual[" + new Numeric<int>(i).ActualValue +"]"
+                    ));
+                }
+            }).Start();
+
         }
     }
 }

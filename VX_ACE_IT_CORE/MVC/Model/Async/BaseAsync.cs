@@ -20,9 +20,17 @@ namespace VX_ACE_IT_CORE.MVC.Model.Async
         protected List<T> ServiceCollection = new List<T>();
         private Thread _workerThread;
         protected List<Task<List<T>>> Works = new List<Task<List<T>>>();
+        protected int Precision;
 
-        protected BaseAsync(BaseDebug debug, GameProcess.GameProcess gameProcess)
+        /// <summary>
+        /// This is basic asynchronous structure impl. with task result usage. 
+        /// </summary>
+        /// <param name="debug"></param>
+        /// <param name="gameProcess"></param>
+        /// <param name="precision">Is used for thread sleep. Lover -> faster but needs more resources.</param>
+        protected BaseAsync(BaseDebug debug, GameProcess.GameProcess gameProcess, int precision = 33)
         {
+            this.Precision = precision;
             this.Debug = debug;
             this.GameProcess = gameProcess;
             DoWork();
@@ -34,7 +42,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Async
             {
                 while (true)
                 {
-                    Thread.Sleep(33);
+                    Thread.Sleep(Precision);
                     for (int i = 0; i < Works.Count; i++)
                     {
                         if (Works[i].Status == TaskStatus.Created)
