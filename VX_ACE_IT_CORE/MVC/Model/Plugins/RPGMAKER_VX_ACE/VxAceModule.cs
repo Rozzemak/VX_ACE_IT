@@ -40,6 +40,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
             }).Start();
         }
 
+        // This is useless, can´t think of usefull case.
         public T GetVxNumber<T>(T type) where T : struct
         {
             return new Numeric<T>(type).ActualValue;

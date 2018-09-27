@@ -202,9 +202,9 @@ namespace VX_ACE_IT_UI
                     Thread.Sleep(22);
                     int i = _core._controller.ProcessMethods.Rpm<int>(
                          _core._controller.VxAceModule.RgssBase
-                        , new List<int>() { 0x25A8B0, 0x30, 0x18, 0x20, 0x38 });
+                        , new List<int>() { 0x25A8B0, 0x30, 0x18, 0x20, (0x38) });
                     debug.AddMessage<object>(new Message<object>(
-                        "AdressValue: engine[" + new Numeric<int>(i).EngineValue + "] actual[" + new Numeric<int>(i).ActualValue +"]"
+                        "AdressValue: engine[" + new Numeric<int>(i).EngineValue + "] actual[" + new Numeric<int>(i).ActualValue + "]"
                     ));
                 }
             }).Start();
