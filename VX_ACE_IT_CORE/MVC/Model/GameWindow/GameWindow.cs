@@ -13,8 +13,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
 {
     public enum WindowStyles
     {
-        Border,
         NoBorder,
+        Border,
     }
 
     class GameWindow : BaseAsync<object>

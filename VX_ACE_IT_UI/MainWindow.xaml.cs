@@ -96,6 +96,7 @@ namespace VX_ACE_IT_UI
         private void InjectButton_Click(object sender, RoutedEventArgs e)
         {
             _core._controller.SetWindowPosFromConfig();
+            _core._controller.SetWindowStyle(config.ConfigVariables.IsWindowBorder ? WindowStyles.NoBorder : WindowStyles.Border);
         }
 
         private void CloseAllDialogs()
@@ -148,7 +149,6 @@ namespace VX_ACE_IT_UI
                 config.ReplaceXmlConfig();
                 CloseAllDialogs();
                 _core._controller.GameProcess.FetchProcess(config.ConfigVariables.ProcessName);
-                //core._controller.SetWindowStyle(config.ConfigVariables.IsWindowBorder ? WindowStyles.NoBorder : WindowStyles.Border);
             }
             else
             {
