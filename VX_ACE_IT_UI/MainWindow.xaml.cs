@@ -61,9 +61,13 @@ namespace VX_ACE_IT_UI
             _core = new Core(debug, config);
             SubscribeEvents(_core);
 
-            _core._controller.GameProcess.FetchProcess(config.ConfigVariables.ProcessName);
+            //AutoFetch is so annoying...
+            // _core._controller.GameProcess.FetchProcess(config.ConfigVariables.ProcessName);}}
 
             _processListDefaultItem = ProcessListItemDefault;
+
+            // Just call the method to init found proceses.
+            WelcomeProcessNameTextBox_OnTextChanged(this.WelcomeProcessNameTextBox, null);
         }
 
         private void SubscribeEvents(Core core)
@@ -75,8 +79,13 @@ namespace VX_ACE_IT_UI
 
         private void GameProcess_OnKill(object sender, EventArgs e)
         {
-            ShowWelcomeScreen();
-            MainWindow_Loaded(this, null);
+            Dispatcher.Invoke(() =>
+            {
+                ShowWelcomeScreen();
+                MainWindow_Loaded(this, null);
+                this.WelcomeProcessNameTextBox.Text = config.ConfigVariables.ProcessName.Split('_').Length > 1
+                    ? config.ConfigVariables.ProcessName.Split('_').First() : config.ConfigVariables.ProcessName;
+            });
         }
 
         private void OnNoProcessFound(object sender, EventArgs eventArgs)
@@ -154,7 +163,6 @@ namespace VX_ACE_IT_UI
                     ProcessName = WelcomeProcessNameTextBox.Text
                 };
                 config.ReplaceXmlConfig();
-                CloseAllDialogs();
                 _core._controller.GameProcess.FetchProcess(config.ConfigVariables.ProcessName);
             }
             else
@@ -178,7 +186,7 @@ namespace VX_ACE_IT_UI
             else
             {
                 ExitCloseButton.Foreground = Brushes.White;
-                ExitCloseButton.Foreground = Brushes.White;
+                ExitMinimizeButton.Foreground = Brushes.White;
             }
         }
 
@@ -209,8 +217,8 @@ namespace VX_ACE_IT_UI
                 {
                     Thread.Sleep(22);
                     int i = _core._controller.ProcessMethods.Rpm<int>(
-                        new IntPtr(0x0) // _core._controller.VxAceModule.RgssBase
-                        , new List<int>() { 0x03C0DE24 });//0x25A8B0, 0x30, 0x18, 0x20, (0x38) }); // <- rpgmaker_vx_ace 4:1.
+                         _core._controller.VxAceModule.RgssBase
+                        , new List<int>() { 0x25A8B0, 0x30, 0x18, 0x20, (0x38) }); // <- rpgmaker_vx_ace 4:1.
                     debug.AddMessage<object>(new Message<object>(
                         "AdressValue: engine[" + new Numeric<int>(i).EngineValue + "] actual[" + new Numeric<int>(i).ActualValue + "]"
                     ));
@@ -221,7 +229,7 @@ namespace VX_ACE_IT_UI
 
         private void ListBoxItem_OnSelected(object sender, RoutedEventArgs e)
         {
-            WelcomeProcessNameTextBox.Text = (sender as ListBoxItem)?.Content.ToString() 
+            WelcomeProcessNameTextBox.Text = (sender as ListBoxItem)?.Content.ToString()
                                              ?? throw new InvalidOperationException("ListBox is null (UI-Welcome)");
         }
 
@@ -229,21 +237,23 @@ namespace VX_ACE_IT_UI
 
         private void WelcomeProcessNameTextBox_OnTextChanged(object sender, TextChangedEventArgs e)
         {
-
-            if (!(ProcessListListBox is null))
+            Dispatcher.Invoke(() =>
             {
-                ProcessListListBox.Items.Clear();
-                string processName = (sender as TextBox)?.Text ?? "";
-
-                foreach (var process in Process.GetProcessesByName(processName))
+                if (!(ProcessListListBox is null))
                 {
-                    UIElement element = CloneUIElement(_processListDefaultItem);
-                    ((ListBoxItem)element).Content = process.ProcessName +"_"+ process.Id;
-                    ((ListBoxItem) element).Visibility = Visibility.Visible;
-                    ((ListBoxItem) element).Selected += ListBoxItem_OnSelected;
-                    ProcessListListBox.Items.Add(element);
+                    ProcessListListBox.Items.Clear();
+                    string processName = (sender as TextBox)?.Text ?? "";
+
+                    foreach (var process in Process.GetProcessesByName(processName))
+                    {
+                        UIElement element = CloneUIElement(_processListDefaultItem);
+                        ((ListBoxItem)element).Content = process.ProcessName + "_" + process.Id;
+                        ((ListBoxItem)element).Visibility = Visibility.Visible;
+                        ((ListBoxItem)element).Selected += ListBoxItem_OnSelected;
+                        ProcessListListBox.Items.Add(element);
+                    }
                 }
-            }
+            });
         }
 
         #region SharedCommonLogic
