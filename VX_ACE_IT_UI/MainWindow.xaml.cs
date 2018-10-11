@@ -222,6 +222,9 @@ namespace VX_ACE_IT_UI
                     debug.AddMessage<object>(new Message<object>(
                         "AdressValue: engine[" + new Numeric<int>(i).EngineValue + "] actual[" + new Numeric<int>(i).ActualValue + "]"
                     ));
+                    if(i!= 0) _core._controller.ProcessMethods.Wpm<int>(
+                        _core._controller.VxAceModule.RgssBase, new Numeric<int>(250, true).EngineValue
+                        , new List<int>() { 0x25A8B0, 0x30, 0x18, 0x20, (0x38) });
                 }
             }).Start();
 

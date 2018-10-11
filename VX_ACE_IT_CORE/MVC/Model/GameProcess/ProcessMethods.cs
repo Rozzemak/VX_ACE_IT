@@ -58,6 +58,35 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
             return BitConverter.ToInt32(buffer, 0);
         }
 
+        /// <summary>
+        /// Generic acces to process memory for struct types.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="lpBaseAddress">BaseAdress of wanted memory.</param>
+        /// <returns></returns>
+        public bool Wpm<T>(IntPtr lpBaseAddress, T value) where T : struct
+        {
+            var buffer = new T[SizeOf<T>()];
+            buffer[0] = value;
+            return WriteProcessMemory(_gameProcess.Process.Handle, lpBaseAddress, buffer, SizeOf<T>(), out var bytesread);
+        }
+
+        public bool Wpm<T>(IntPtr lpBaseAddress, T value, List<int> offsets) where T : struct
+        {
+            IntPtr address = lpBaseAddress;
+
+            var lastOffset = offsets.Last();
+            offsets.RemoveAt(offsets.Count - 1);
+
+            foreach (var offset in offsets)
+            {
+                address = Rpm<IntPtr>(IntPtr.Add(address, offset));
+            }
+
+            return Wpm<T>(IntPtr.Add(address, lastOffset), value);
+        }
+
+
         public int SizeOf<T>() where T : struct
         {
             return Marshal.SizeOf(default(T));
@@ -89,12 +118,11 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
             out IntPtr lpNumberOfBytesRead);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool ReadProcessMemory(
+        public static extern bool WriteProcessMemory(
             IntPtr hProcess,
             IntPtr lpBaseAddress,
-            IntPtr lpBuffer,
+            [MarshalAs(UnmanagedType.AsAny)] object lpBuffer,
             int dwSize,
-            out IntPtr lpNumberOfBytesRead);
-
+            out IntPtr lpNumberOfBytesWritten);
     }
 }

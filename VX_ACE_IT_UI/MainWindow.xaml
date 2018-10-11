@@ -55,7 +55,7 @@
                             <Label>Found processes:</Label>
                         </DockPanel>
                         <ListBox Name="ProcessListListBox" MinWidth="100" MaxHeight="300"  ScrollViewer.VerticalScrollBarVisibility="Visible">
-                            <ListBoxItem Name="ProcessListItemDefault" Selected="ListBoxItem_OnSelected" Visibility="Collapsed">Text</ListBoxItem>
+                            <ListBoxItem Name="ProcessListItemDefault" Selected="ListBoxItem_OnSelected" Visibility="Collapsed">Default</ListBoxItem>
                         </ListBox>
                     </StackPanel>
                 </materialDesign:Card>

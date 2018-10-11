@@ -14,9 +14,11 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES
         /// </summary>
         public T ActualValue => EngineValue / (2 as dynamic);
 
-        public Numeric(T value)
+        public Numeric(T value, bool actualValue = false)
         {
+            if(!actualValue)
             this.EngineValue = value;
+            else this.EngineValue = (value as dynamic) * 2 + 1;
         }
 
     }

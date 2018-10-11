@@ -58,9 +58,9 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
                 else
                 {
                     _debug.AddMessage<object>(new Message<object>(
-                        "[" + GetType().Name + "] Process: " + "name: [" + name + "]" + " NOT fetched.",
+                        "[" + GetType().Name + "] Process: " + "name: [" + name + "]" + " not found.",
                         MessageTypeEnum.Exception));
-                    MessageBox.Show("No process named [" + name + "] found.");
+                    // MessageBox.Show("No process named [" + name + "] found."); // Annoying
                 }
 
                 if (IsProcessFetched())
