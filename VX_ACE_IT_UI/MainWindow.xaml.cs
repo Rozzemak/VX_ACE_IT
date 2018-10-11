@@ -204,12 +204,13 @@ namespace VX_ACE_IT_UI
             //int address = Convert.ToInt32(AdressTextBox.Text,16);
             new Task(() =>
             {
+                // Terraria cheatsheetTest: base: "THREADSTACK0"-00000FB8 + 0x54 + 0x24 + 0xEC + F0 + 388
                 while (true)
                 {
                     Thread.Sleep(22);
                     int i = _core._controller.ProcessMethods.Rpm<int>(
-                         _core._controller.VxAceModule.RgssBase
-                        , new List<int>() { 0x25A8B0, 0x30, 0x18, 0x20, (0x38) });
+                        new IntPtr(0x0) // _core._controller.VxAceModule.RgssBase
+                        , new List<int>() { 0x03C0DE24 });//0x25A8B0, 0x30, 0x18, 0x20, (0x38) }); // <- rpgmaker_vx_ace 4:1.
                     debug.AddMessage<object>(new Message<object>(
                         "AdressValue: engine[" + new Numeric<int>(i).EngineValue + "] actual[" + new Numeric<int>(i).ActualValue + "]"
                     ));
