@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Runtime.CompilerServices;
@@ -13,10 +15,12 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Xml;
 using VX_ACE_IT_CORE;
 using VX_ACE_IT_CORE.MVC.Model.GameWindow;
 using VX_ACE_IT_CORE.MVC._Common;
@@ -33,6 +37,7 @@ namespace VX_ACE_IT_UI
         private Config config;
         private Core _core;
         private BaseDebug debug = new BaseDebug();
+        private UIElement _processListDefaultItem = new UIElement();
 
         public MainWindow()
         {
@@ -57,6 +62,8 @@ namespace VX_ACE_IT_UI
             SubscribeEvents(_core);
 
             _core._controller.GameProcess.FetchProcess(config.ConfigVariables.ProcessName);
+
+            _processListDefaultItem = ProcessListItemDefault;
         }
 
         private void SubscribeEvents(Core core)
@@ -210,5 +217,50 @@ namespace VX_ACE_IT_UI
             }).Start();
 
         }
+
+        private void ListBoxItem_OnSelected(object sender, RoutedEventArgs e)
+        {
+            WelcomeProcessNameTextBox.Text = (sender as ListBoxItem)?.Content.ToString() 
+                                             ?? throw new InvalidOperationException("ListBox is null (UI-Welcome)");
+        }
+
+
+
+        private void WelcomeProcessNameTextBox_OnTextChanged(object sender, TextChangedEventArgs e)
+        {
+
+            if (!(ProcessListListBox is null))
+            {
+                ProcessListListBox.Items.Clear();
+                string processName = (sender as TextBox)?.Text ?? "";
+
+                foreach (var process in Process.GetProcessesByName(processName))
+                {
+                    UIElement element = CloneUIElement(_processListDefaultItem);
+                    ((ListBoxItem)element).Content = process.ProcessName +"_"+ process.Id;
+                    ((ListBoxItem) element).Visibility = Visibility.Visible;
+                    ((ListBoxItem) element).Selected += ListBoxItem_OnSelected;
+                    ProcessListListBox.Items.Add(element);
+                }
+            }
+        }
+
+        #region SharedCommonLogic
+        /// <summary>
+        /// Clones UIElement via xaml reader/writer.
+        /// </summary>
+        /// <param name="uiElement"></param>
+        /// <returns></returns>
+        private UIElement CloneUIElement(UIElement uiElement)
+        {
+            var xamlElement = XamlWriter.Save(uiElement);
+            var xamlString = new StringReader(xamlElement);
+            var xmlTextReader = new XmlTextReader(xamlString);
+            return (UIElement)XamlReader.Load(xmlTextReader);
+        }
+        #endregion
+
+
+
     }
 }

@@ -18,36 +18,48 @@
         FontFamily="{DynamicResource MaterialDesignFont}">
     <Grid>
         <StackPanel Name="WelcomeStackPanel" VerticalAlignment="Center" ZIndex="1">
-            <materialDesign:Card VerticalAlignment="Center" Name="WelcomeSettingsCard" Padding="32" Width="300">
-                <StackPanel Name="WelcomeCardStackPanel">
-                    <TextBlock HorizontalAlignment="Center" FontSize="25" Margin="0 0 0 10">Welcome</TextBlock>
-                    <TextBlock HorizontalAlignment="Center">Config</TextBlock>
-                    <TextBlock HorizontalAlignment="Center" Margin="0 0 0 20">(TAB for quick nav)</TextBlock>
-                    <DockPanel Width="180" ToolTip="For RPGMAKER games, it's normal to use process name 'game', without .exe extension. ">
-                        <Label>Process name:</Label>
-                        <TextBox Name="WelcomeProcessNameTextBox">game</TextBox>
-                    </DockPanel>
-                    <DockPanel Width="180">
-                        <Label>Resolution:</Label>
-                        <ComboBox Name="WelcomeResolution" materialDesign:HintAssist.Hint="Search"
+            <DockPanel HorizontalAlignment="Center">
+                <materialDesign:Card VerticalAlignment="Center" Name="WelcomeSettingsCard" Padding="32" Width="300">
+                    <StackPanel Name="WelcomeCardStackPanel">
+                        <TextBlock HorizontalAlignment="Center" FontSize="25" Margin="0 0 0 10">Welcome</TextBlock>
+                        <TextBlock HorizontalAlignment="Center">Config</TextBlock>
+                        <TextBlock HorizontalAlignment="Center" Margin="0 0 0 20">(TAB for quick nav)</TextBlock>
+                        <DockPanel Width="180" ToolTip="For RPGMAKER games, it's normal to use process name 'game', without .exe extension. ">
+                            <Label>Process name:</Label>
+                            <TextBox Name="WelcomeProcessNameTextBox" TextChanged="WelcomeProcessNameTextBox_OnTextChanged" >game</TextBox>
+                        </DockPanel>
+                        <DockPanel Width="180">
+                            <Label>Resolution:</Label>
+                            <ComboBox Name="WelcomeResolution" materialDesign:HintAssist.Hint="Search"
                                   IsEditable="True" materialDesign:HintAssist.HintOpacity=".26"
                                   ToolTip="4:3 or whatever custom resolution/ratio is supported">
-                            <ComboBoxItem>1920x1080</ComboBoxItem>
-                            <ComboBoxItem>1440x1080</ComboBoxItem>
-                            <ComboBoxItem>1600x900</ComboBoxItem>
-                            <ComboBoxItem>1280x720</ComboBoxItem>
-                            <ComboBoxItem IsSelected="True">800x600</ComboBoxItem>
-                        </ComboBox>
-                    </DockPanel>
-                    <DockPanel Width="180" ToolTip="Whether you would like to keep window border after injection or not.">
-                        <Label>Border:</Label>
-                        <CheckBox Name="WelcomeBorder" Margin="0,0,-0.4,0" IsChecked="True"/>
-                    </DockPanel>
-                    <DockPanel Width="180">
-                        <Button Name="WelcomeConfigButton" Margin="0 20 0 0" Click="WelcomeConfigButton_Click">Save</Button>
-                    </DockPanel>
-                </StackPanel>
-            </materialDesign:Card>
+                                <ComboBoxItem>1920x1080</ComboBoxItem>
+                                <ComboBoxItem>1440x1080</ComboBoxItem>
+                                <ComboBoxItem>1600x900</ComboBoxItem>
+                                <ComboBoxItem>1280x720</ComboBoxItem>
+                                <ComboBoxItem IsSelected="True">800x600</ComboBoxItem>
+                            </ComboBox>
+                        </DockPanel>
+                        <DockPanel Width="180" ToolTip="Whether you would like to keep window border after injection or not.">
+                            <Label>Border:</Label>
+                            <CheckBox Name="WelcomeBorder" Margin="0,0,-0.4,0" IsChecked="True"/>
+                        </DockPanel>
+                        <DockPanel Width="180">
+                            <Button Name="WelcomeConfigButton" Margin="0 20 0 0" Click="WelcomeConfigButton_Click">Save</Button>
+                        </DockPanel>
+                    </StackPanel>
+                </materialDesign:Card>
+                <materialDesign:Card Name="ProcessListCard" Margin="10 0" HorizontalAlignment="Center">
+                    <StackPanel Name="ProcessListStackPanel" HorizontalAlignment="Center">
+                        <DockPanel HorizontalAlignment="Center">
+                            <Label>Found processes:</Label>
+                        </DockPanel>
+                        <ListBox Name="ProcessListListBox" MinWidth="100" MaxHeight="300"  ScrollViewer.VerticalScrollBarVisibility="Visible">
+                            <ListBoxItem Name="ProcessListItemDefault" Selected="ListBoxItem_OnSelected" Visibility="Collapsed">Text</ListBoxItem>
+                        </ListBox>
+                    </StackPanel>
+                </materialDesign:Card>
+            </DockPanel>
             <StackPanel  Name="WelcomeSettingsCardErrorCard" Visibility="Collapsed" >
                 <materialDesign:Card Background="{DynamicResource ValidationErrorBrush}" VerticalAlignment="Center" Padding="32" Width="300">
                     <TextBlock TextAlignment="Center" xml:space="preserve" >Please fill at least theese few values &#10; correctly.</TextBlock>

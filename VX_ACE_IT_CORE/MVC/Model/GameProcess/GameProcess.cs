@@ -24,11 +24,21 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
             _debug = debug;
         }
 
+        public GameProcess(BaseDebug debug,  Process process)
+        {
+            if (Process == null)
+            {
+                throw new ArgumentNullException(nameof(Process));
+            }
+
+            this._process = process;
+        }
+
         public Process Process
         {
             get
             {
-                if (!CheckProcess())
+                if (!IsProcessFetched())
                 {
                     FetchProcess();
                     return _process;
@@ -39,23 +49,54 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
 
         public void FetchProcess(string name = "game")
         {
-            if(Process.GetProcessesByName(name).Length> 0)
-                _process = Process.GetProcessesByName(name).First() ?? throw new Exception("No process found with name: [" + name + "].");
+            int.TryParse(name.Split('_').Last(), out int pId);
+            if (pId == 0)
+            {
+                if (Process.GetProcessesByName(name).Length > 0)
+                    _process = Process.GetProcessesByName(name).First() ??
+                               throw new Exception("No process found with name: [" + name + "].");
+                else
+                {
+                    _debug.AddMessage<object>(new Message<object>(
+                        "[" + GetType().Name + "] Process: " + "name: [" + name + "]" + " NOT fetched.",
+                        MessageTypeEnum.Exception));
+                    MessageBox.Show("No process named [" + name + "] found.");
+                }
+
+                if (IsProcessFetched())
+                {
+                    OnProcessFound?.Invoke(this, EventArgs.Empty);
+                    WatchProcessState();
+                    _debug.AddMessage<object>(new Message<object>(
+                        "[" + GetType().Name + "] Process: " + "name: [" + name + "]" + " id: [" + Process.Id +
+                        "] fetched.", MessageTypeEnum.Event));
+                }
+                else
+                {
+                    OnNoProcessFound?.Invoke(this, EventArgs.Empty);
+                    _debug.AddMessage<object>(new Message<object>(
+                        "[" + GetType().Name + "] Process: " + "name: [" + name + "]" + " NOT fetched.",
+                        MessageTypeEnum.Event));
+                }
+            }
             else
             {
-                _debug.AddMessage<object>(new Message<object>("[" + GetType().Name + "] Process: " + "name: [" + name + "]" + " NOT fetched.", MessageTypeEnum.Exception));
-                MessageBox.Show("No process named [" + name + "] found.");
-            }
-            if (CheckProcess())
-            {
-                OnProcessFound?.Invoke(this, EventArgs.Empty);
-                WatchProcessState();
-                _debug.AddMessage<object>(new Message<object>("[" + GetType().Name + "] Process: " + "name: [" + name + "]" + " id: [" + Process.Id + "] fetched.", MessageTypeEnum.Event));
-            }
-            else
-            {
-                OnNoProcessFound?.Invoke(this, EventArgs.Empty);
-                _debug.AddMessage<object>(new Message<object>("[" + GetType().Name + "] Process: " + "name: [" + name + "]" + " NOT fetched.", MessageTypeEnum.Event));
+                _process = Process.GetProcessById(pId);
+                if (IsProcessFetched())
+                {
+                    OnProcessFound?.Invoke(this, EventArgs.Empty);
+                    WatchProcessState();
+                    _debug.AddMessage<object>(new Message<object>(
+                        "[" + GetType().Name + "] Process: " + "name: [" + Process.ProcessName + "]" + " id: [" + Process.Id +
+                        "] fetched.", MessageTypeEnum.Event));
+                }
+                else
+                {
+                    OnNoProcessFound?.Invoke(this, EventArgs.Empty);
+                    _debug.AddMessage<object>(new Message<object>(
+                        "[" + GetType().Name + "] Process: " + "id: [" + pId + "]" + " NOT fetched.",
+                        MessageTypeEnum.Event));
+                }
             }
         }
 
@@ -79,7 +120,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
             return null;
         }
 
-        public bool CheckProcess()
+        public bool IsProcessFetched()
         {
             return _process != null;
         }

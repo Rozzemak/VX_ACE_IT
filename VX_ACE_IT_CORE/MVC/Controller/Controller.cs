@@ -50,7 +50,7 @@ namespace VX_ACE_IT_CORE.MVC.Controller
 
         private void InitModules()
         {
-            VxAceModule = new VxAceModule(debug, ProcessMethods, 17);
+           // VxAceModule = new VxAceModule(debug, ProcessMethods, 17);
         }
 
 
