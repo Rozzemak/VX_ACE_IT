@@ -27,6 +27,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
 
         public void UpdateBaseAddress()
         {
+            if(!(_processMethods._gameProcess.GetModuleAddresByName(ModuleName) is null))
             new Task(() =>
             {
                 while (true)

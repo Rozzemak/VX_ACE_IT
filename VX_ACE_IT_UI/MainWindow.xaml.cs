@@ -260,6 +260,17 @@ namespace VX_ACE_IT_UI
                             ((ListBoxItem) element).Selected += ListBoxItem_OnSelected;
                             ProcessListListBox.Items.Add(element);
                         }
+                        else
+                        {
+                            UIElement element = CloneUIElement(_processListDefaultItem);
+                            ((ListBoxItem)element).Content = process.ProcessName + "-x64-" + process.Id;
+                            ((ListBoxItem)element).Visibility = Visibility.Visible;
+                            ((ListBoxItem)element).Selected += ListBoxItem_OnSelected;
+                            ((ListBoxItem)element).Background = Brushes.LightCoral;
+                            ((ListBoxItem)element).ToolTip = "Not selectable, \nProcess is x64 => not compatible";
+                            ((ListBoxItem) element).Focusable = false;
+                            ProcessListListBox.Items.Add(element);
+                        }
                     }
 
                     if(Process.GetProcessesByName(processName).Length > 0) ProcessListExpander.IsExpanded = true;
