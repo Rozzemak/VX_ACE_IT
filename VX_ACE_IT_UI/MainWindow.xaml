@@ -51,7 +51,7 @@
                 </materialDesign:Card>
                 <materialDesign:Card Name="ProcessListCard" Margin="10 0" HorizontalAlignment="Center">
                     <StackPanel Name="ProcessListStackPanel" HorizontalAlignment="Center" Background="WhiteSmoke">
-                        <StackPanel MaxHeight="287">
+                        <StackPanel MaxHeight="286">
                             <Expander Name="ProcessListExpander" Header="Found processes">
                                 <ListBox Name="ProcessListListBox" MinWidth="100" ScrollViewer.VerticalScrollBarVisibility="Visible">
                                     <ListBoxItem Name="ProcessListItemDefault" Selected="ListBoxItem_OnSelected" Visibility="Collapsed">Default</ListBoxItem>

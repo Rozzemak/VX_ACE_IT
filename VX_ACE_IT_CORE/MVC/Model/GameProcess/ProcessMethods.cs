@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -92,6 +94,18 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
             return Marshal.SizeOf(default(T));
         }
 
+
+        public bool Is64BitProcess(GameProcess gameProcess)
+        {
+            if (!Environment.Is64BitOperatingSystem)
+                return false;
+
+            if (!IsWow64Process(gameProcess.Process.Handle, out var isWow64Process))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            return !isWow64Process;
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -124,5 +138,9 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
             [MarshalAs(UnmanagedType.AsAny)] object lpBuffer,
             int dwSize,
             out IntPtr lpNumberOfBytesWritten);
+
+        [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsWow64Process([In] IntPtr processHandle, [Out, MarshalAs(UnmanagedType.Bool)] out bool wow64Process);
     }
 }

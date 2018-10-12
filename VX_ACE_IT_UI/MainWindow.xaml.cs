@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -250,11 +252,14 @@ namespace VX_ACE_IT_UI
 
                     foreach (var process in Process.GetProcessesByName(processName))
                     {
-                        UIElement element = CloneUIElement(_processListDefaultItem);
-                        ((ListBoxItem)element).Content = process.ProcessName + "_" + process.Id;
-                        ((ListBoxItem)element).Visibility = Visibility.Visible;
-                        ((ListBoxItem)element).Selected += ListBoxItem_OnSelected;
-                        ProcessListListBox.Items.Add(element);
+                        if (!Is64BitProcess(process))
+                        {
+                            UIElement element = CloneUIElement(_processListDefaultItem);
+                            ((ListBoxItem) element).Content = process.ProcessName + "_" + process.Id;
+                            ((ListBoxItem) element).Visibility = Visibility.Visible;
+                            ((ListBoxItem) element).Selected += ListBoxItem_OnSelected;
+                            ProcessListListBox.Items.Add(element);
+                        }
                     }
 
                     if(Process.GetProcessesByName(processName).Length > 0) ProcessListExpander.IsExpanded = true;
@@ -276,6 +281,21 @@ namespace VX_ACE_IT_UI
             var xmlTextReader = new XmlTextReader(xamlString);
             return (UIElement)XamlReader.Load(xmlTextReader);
         }
+
+        private bool Is64BitProcess(Process process)
+        {
+            if (!Environment.Is64BitOperatingSystem)
+                return false;
+
+            if (!IsWow64Process(process.Handle, out var isWow64Process))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            return !isWow64Process;
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsWow64Process([In] IntPtr processHandle, [Out, MarshalAs(UnmanagedType.Bool)] out bool wow64Process);
         #endregion
 
 
