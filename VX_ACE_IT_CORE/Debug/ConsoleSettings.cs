@@ -25,6 +25,7 @@ namespace VX_ACE_IT_CORE.Debug
             Console.BufferHeight = _bufferHeight;
             // bug: Throws exception on my main pc. Idk why, maybe win10 1803 build ? 
             //Console.BufferWidth = _bufferWidth;
+            Console.Title = "VX_ACE_IT-Debug";
             Console.OutputEncoding = _encoding;
         }
     }
