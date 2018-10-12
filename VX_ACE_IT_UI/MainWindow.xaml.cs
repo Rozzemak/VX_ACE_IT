@@ -121,6 +121,7 @@ namespace VX_ACE_IT_UI
             {
                 WelcomeStackPanel.Visibility = Visibility.Collapsed;
                 DimmGrid.Visibility = Visibility.Collapsed;
+                WelcomeSettingsCardErrorCard.Visibility = Visibility.Collapsed;
             });
         }
 
@@ -255,6 +256,9 @@ namespace VX_ACE_IT_UI
                         ((ListBoxItem)element).Selected += ListBoxItem_OnSelected;
                         ProcessListListBox.Items.Add(element);
                     }
+
+                    if(Process.GetProcessesByName(processName).Length > 0) ProcessListExpander.IsExpanded = true;
+                    else ProcessListExpander.IsExpanded = false;
                 }
             });
         }

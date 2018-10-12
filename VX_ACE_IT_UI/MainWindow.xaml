@@ -50,18 +50,25 @@
                     </StackPanel>
                 </materialDesign:Card>
                 <materialDesign:Card Name="ProcessListCard" Margin="10 0" HorizontalAlignment="Center">
-                    <StackPanel Name="ProcessListStackPanel" HorizontalAlignment="Center">
+                    <StackPanel Name="ProcessListStackPanel" HorizontalAlignment="Center" Background="WhiteSmoke">
                         <DockPanel HorizontalAlignment="Center">
-                            <Label>Found processes:</Label>
+                            <Label></Label>
                         </DockPanel>
-                        <ListBox Name="ProcessListListBox" MinWidth="100" MaxHeight="300"  ScrollViewer.VerticalScrollBarVisibility="Visible">
-                            <ListBoxItem Name="ProcessListItemDefault" Selected="ListBoxItem_OnSelected" Visibility="Collapsed">Default</ListBoxItem>
-                        </ListBox>
+                        <StackPanel MaxHeight="275">
+                            <Expander Name="ProcessListExpander" Header="Found processes">
+                                <ListBox Name="ProcessListListBox" MinWidth="100" ScrollViewer.VerticalScrollBarVisibility="Visible">
+                                    <ListBoxItem Name="ProcessListItemDefault" Selected="ListBoxItem_OnSelected" Visibility="Collapsed">Default</ListBoxItem>
+                                </ListBox>
+                            </Expander>
+                            <materialDesign:Card Background="WhiteSmoke" Margin="0 10 0 0">
+                                <TextBlock TextAlignment="Center" xml:space="preserve" >&#10; You don´t have&#10; to select process&#10;&#10; If the name of the &#10;process is not&#10;unique, select one&#10; &#10; App only works &#10; with x86(32-bit) &#10; processes. &#10;</TextBlock>
+                            </materialDesign:Card>
+                        </StackPanel>
                     </StackPanel>
                 </materialDesign:Card>
             </DockPanel>
             <StackPanel  Name="WelcomeSettingsCardErrorCard" Visibility="Collapsed" >
-                <materialDesign:Card Background="{DynamicResource ValidationErrorBrush}" VerticalAlignment="Center" Padding="32" Width="300">
+                <materialDesign:Card Background="{DynamicResource ValidationErrorBrush}" VerticalAlignment="Center" Padding="32" Margin="0 10 5 0"  Width="430">
                     <TextBlock TextAlignment="Center" xml:space="preserve" >Please fill at least theese few values &#10; correctly.</TextBlock>
                 </materialDesign:Card>
             </StackPanel>
