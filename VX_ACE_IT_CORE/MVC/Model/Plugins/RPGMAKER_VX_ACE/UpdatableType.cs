@@ -61,10 +61,6 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                     "[" + GetType().Name + "][" + this.Type.GetType().Name + "] only some of the offsets were loaded.",
                     MessageTypeEnum.Indifferent));
                 //Offsets.TryGetValue(typeof(Player).GetField("Hp"), out var list);
-                var dict = string.Join(";", Offsets);
-                Debug.AddMessage<object>(new Message<object>(
-                    ToDebugString(Offsets)
-                    ,MessageTypeEnum.Standard));
             }
             else if (this.Type.GetType().GetFields().Length == 0)
             {
@@ -73,6 +69,13 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                     MessageTypeEnum.Error));
             }
             else { } // Wtf hapened here ?!
+            if (this.Type.GetType().GetFields().Length > 0)
+            {
+                var dict = string.Join(";", Offsets);
+                Debug.AddMessage<object>(new Message<object>(
+                    "["+this.Type.GetType().Name+"]" + ToDebugString(Offsets)
+                    , MessageTypeEnum.Standard));
+            }
         }
 
 
