@@ -229,7 +229,7 @@ namespace VX_ACE_IT_CORE.MVC._Common
 
         public void LoadXmlConfig()
         {
-            AddWork(new Task<List<object>>(() =>
+            var t = new Task<List<object>>(() =>
             {
 
                 if (CheckConfigIntegrity())
@@ -238,22 +238,27 @@ namespace VX_ACE_IT_CORE.MVC._Common
                     // Just whatever the exception is, the xml file is damaged, user will be asked to remove it.
                     try
                     {
-                        ConfigVariables = (ConfigVariables)xmlSerializer.Deserialize(_xmlReader);
+                        ConfigVariables = (ConfigVariables) xmlSerializer.Deserialize(_xmlReader);
+                        _xmlReader.Dispose();
+                        _xmlReader.Close();
                     }
                     catch (Exception e)
                     {
-                        MessageBox.Show("Your Config.xml is damaged.\nRemove it.");
+                        MessageBox.Show("Your Config.xml is damaged.\nRemove it / Save new one.");
+                        _xmlReader.Close();
+                        _xmlReader.Dispose();
                         throw;
                     }
-                    _xmlReader.Dispose();
                 }
                 else
                 {
-                    MessageBox.Show("Your Config.xml is damaged.\n It is goona be rapla it.");
+                    MessageBox.Show("Your Config.xml is damaged.\n App is goona be raplace it after save.");
 
                 }
                 return null;
-            }));
+            });
+            AddWork(t);
+            t.Wait(-1);
         }
 
         public bool CheckConfigIntegrity()
@@ -264,9 +269,19 @@ namespace VX_ACE_IT_CORE.MVC._Common
                 lock (xmlSerializer)
                 {
                     _xmlReader = XmlReader.Create(ConfigFileName);
-                    var b = xmlSerializer.CanDeserialize(_xmlReader);
-                    _xmlReader.Dispose();
-                    return new List<object>() { b };
+                    try
+                    {
+                        var b = xmlSerializer.CanDeserialize(_xmlReader);
+                        _xmlReader.Dispose();
+                        return new List<object>() { b };
+                    }
+                    catch (XmlException e)
+                    {
+                        MessageBox.Show("Config.xml file is damaged. Remove it / Save new one");
+                        _xmlReader.Dispose();
+                        Debug.AddMessage<object>(new Message<object>("[" + typeof(XmlReader).Name + "]" + " Remove your config.xml file! => " + e.Message,MessageTypeEnum.Exception));
+                        throw;
+                    }
                 }
             });
             AddWork(tsk);

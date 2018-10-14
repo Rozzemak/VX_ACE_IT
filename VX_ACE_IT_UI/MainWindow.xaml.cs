@@ -70,6 +70,17 @@ namespace VX_ACE_IT_UI
 
             // Just call the method to init found proceses.
             WelcomeProcessNameTextBox_OnTextChanged(this.WelcomeProcessNameTextBox, null);
+
+            InitUiFromConfig();
+        }
+
+        private void InitUiFromConfig()
+        {
+            config.LoadXmlConfig();
+
+            WelcomeProcessNameTextBox.Text = config.ConfigVariables.ProcessName;
+            WelcomeResolution.Text = config.ConfigVariables.Width + "x" + config.ConfigVariables.Height;
+            WelcomeBorder.IsChecked = config.ConfigVariables.IsWindowBorder;
         }
 
         private void SubscribeEvents(Core core)
@@ -273,8 +284,7 @@ namespace VX_ACE_IT_UI
                         }
                     }
 
-                    if(Process.GetProcessesByName(processName).Length > 0) ProcessListExpander.IsExpanded = true;
-                    else ProcessListExpander.IsExpanded = false;
+                    ProcessListExpander.IsExpanded = Process.GetProcessesByName(processName).Length > 0;
                 }
             });
         }

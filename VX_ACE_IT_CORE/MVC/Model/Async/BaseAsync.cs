@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Xml;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Exceptions;
 
