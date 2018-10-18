@@ -205,7 +205,6 @@ namespace VX_ACE_IT_CORE.MVC._Common
                     ConfigVariables = new ConfigVariables();
                     _writer = new StreamWriter(ConfigFileName, false);
                     xmlSerializer.Serialize(_writer, ConfigVariables);
-                    _writer.Close();
                     _writer.Dispose();
                 }
                 return null;
@@ -220,7 +219,6 @@ namespace VX_ACE_IT_CORE.MVC._Common
                 {
                     _writer = new StreamWriter(ConfigFileName, false);
                     xmlSerializer.Serialize(_writer, this.ConfigVariables);
-                    _writer.Close();
                     _writer.Dispose();
                 }
                 return null;
@@ -240,14 +238,16 @@ namespace VX_ACE_IT_CORE.MVC._Common
                     {
                         ConfigVariables = (ConfigVariables) xmlSerializer.Deserialize(_xmlReader);
                         _xmlReader.Dispose();
-                        _xmlReader.Close();
                     }
                     catch (Exception e)
                     {
                         MessageBox.Show("Your Config.xml is damaged.\nRemove it / Save new one.");
-                        _xmlReader.Close();
                         _xmlReader.Dispose();
                         throw;
+                    }
+                    finally
+                    {
+
                     }
                 }
                 else
@@ -285,7 +285,7 @@ namespace VX_ACE_IT_CORE.MVC._Common
                 }
             });
             AddWork(tsk);
-
+            tsk.Wait(-1);
             return ((bool)ResultHandler(tsk).First());
         }
 

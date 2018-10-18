@@ -21,5 +21,18 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES
             else this.EngineValue = (value as dynamic) * 2 + 1;
         }
 
+        public override string ToString()
+        {
+            string s = "{";
+
+            foreach (var field in GetType().GetFields())
+            {
+                s += "[" + field.Name + ":" + this.GetType().GetField(field.Name).GetValue(this) + "]";
+            }
+
+            s += "}";
+
+            return s;
+        }
     }
 }

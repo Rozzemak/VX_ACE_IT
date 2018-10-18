@@ -11,5 +11,23 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES
         public List<Item> Items;
         public List<Variable<int>> Variables;
 
+        public Player()
+        {
+
+        }
+
+        public override string ToString()
+        {
+            string s = "{";
+
+            foreach (var field in GetType().GetFields())
+            {
+                s += "[" + field.Name + ":" + this.GetType().GetField(field.Name).GetValue(this) + "]";
+            }
+
+            s += "}";
+
+            return s;
+        }
     }
 }

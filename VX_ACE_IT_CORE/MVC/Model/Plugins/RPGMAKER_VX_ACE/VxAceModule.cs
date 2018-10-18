@@ -45,7 +45,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                     {
                         new List<IntPtr>(){ new IntPtr(0x25A8B0), new IntPtr(0x30), new IntPtr(0x18), new IntPtr(0x20), new IntPtr((0x38+0x4))},
                     }},
-                });
+                }, this);
         }
 
         public void UpdateBaseAddress()

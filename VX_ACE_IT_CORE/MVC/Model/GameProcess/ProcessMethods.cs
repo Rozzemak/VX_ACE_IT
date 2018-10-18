@@ -32,7 +32,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
         }
 
 
-        public T Rpm<T>(IntPtr lpBaseAddress, List<int> offsets) where T : struct
+        public T Rpm<T>(IntPtr lpBaseAddress, List<IntPtr> offsets) where T : struct
         {
             IntPtr address = lpBaseAddress;
 
@@ -41,10 +41,10 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
 
             foreach (var offset in offsets)
             {
-                address = Rpm<IntPtr>(IntPtr.Add(address, offset));
+                address = Rpm<IntPtr>(IntPtr.Add(address, (int)offset));
             }
 
-            return Rpm<T>(IntPtr.Add(address, lastOffset));
+            return Rpm<T>(IntPtr.Add(address, (int)lastOffset));
         }
 
 
@@ -73,7 +73,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
             return WriteProcessMemory(_gameProcess.Process.Handle, lpBaseAddress, buffer, SizeOf<T>(), out var bytesread);
         }
 
-        public bool Wpm<T>(IntPtr lpBaseAddress, T value, List<int> offsets) where T : struct
+        public bool Wpm<T>(IntPtr lpBaseAddress, T value, List<IntPtr> offsets) where T : struct
         {
             IntPtr address = lpBaseAddress;
 
@@ -82,10 +82,10 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
 
             foreach (var offset in offsets)
             {
-                address = Rpm<IntPtr>(IntPtr.Add(address, offset));
+                address = Rpm<IntPtr>(IntPtr.Add(address, (int)offset));
             }
 
-            return Wpm<T>(IntPtr.Add(address, lastOffset), value);
+            return Wpm<T>(IntPtr.Add(address, (int)lastOffset), value);
         }
 
 
