@@ -95,19 +95,20 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
         {
             AddWork(new Task<List<object>>(() =>
             {
-                Thread.Sleep(3000);
-                List<int> occurences = new List<int>();
+                IntPtr valAdress = new IntPtr(1);
+                List<KeyValuePair<IntPtr, int>> occurences = new List<KeyValuePair<IntPtr, int>>();
                 while (true)
                 {
-                    int i;
+                    int i = 0;
                     foreach (var keyPar in Offsets)
                     {
                         foreach (var offSetList in keyPar.Value)
                         {
-                            i = _processMethods.Rpm<int>(vxAceModule.RgssBase, offSetList);
+                            i = _processMethods.Rpm<int>(vxAceModule.RgssBase, offSetList, out valAdress);
                             if (i > 0 && i < 10000)
                             {
-                                occurences.Add(i);
+                                occurences.Add(new KeyValuePair<IntPtr, int>(valAdress, i));
+                                // Debug.AddMessage<object>(new Message<object>("HP:"+valAdress.ToString("X")));
                                 // KeyPar.Key.SetValue(Type, i);
                             }
                         }
@@ -118,13 +119,16 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                             if (grouped.Any())
                             {
                                 Type.GetType().GetField(keyPar.Key.Name).SetValue(Type,
-                                    new Numeric<int>(grouped.First().Key));
+                                new KeyValuePair<IntPtr, Numeric<int>>(
+                                    grouped.FirstOrDefault().Key.Key, 
+                                    new Numeric<int>(grouped.FirstOrDefault().Key.Value)));
                                 Thread.Sleep(Precision);
                                 Debug.AddMessage<object>(new Message<object>(Type.ToString()));
                             }
                         }
                         occurences.Clear();
                     }
+                    Thread.Sleep(3000);
                 }
             }));
         }

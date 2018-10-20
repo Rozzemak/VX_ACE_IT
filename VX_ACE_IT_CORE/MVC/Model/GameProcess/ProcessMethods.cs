@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows.Forms;
 
 namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
 {
@@ -32,7 +33,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
         }
 
 
-        public T Rpm<T>(IntPtr lpBaseAddress, List<IntPtr> offsets) where T : struct
+        public T Rpm<T>(IntPtr lpBaseAddress, List<IntPtr> offsets, out IntPtr valAdress) where T : struct
         {
             IntPtr address = lpBaseAddress;
 
@@ -46,7 +47,13 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
                 address = Rpm<IntPtr>(IntPtr.Add(address, (int)offsets[i]));
             }
 
-            return Rpm<T>(IntPtr.Add(address, (int)lastOffset));
+            valAdress = default(IntPtr);
+            if (lastOffset!= valAdress)
+            {
+                valAdress = IntPtr.Add(address, (int)lastOffset);
+            }
+            
+            return Rpm<T>(valAdress);
         }
 
 
