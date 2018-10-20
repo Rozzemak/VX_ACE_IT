@@ -231,7 +231,7 @@ namespace VX_ACE_IT_UI
             new Task(() =>
             {
                 // Terraria cheatsheetTest: base: "THREADSTACK0"-00000FB8 + 0x54 + 0x24 + 0xEC + F0 + 388
-                while (true)
+                while (false)
                 {
                     Thread.Sleep(22);
                     int i = _core._controller.ProcessMethods.Rpm<int>(
@@ -239,7 +239,7 @@ namespace VX_ACE_IT_UI
                         , new List<IntPtr>() { new IntPtr(0x25A8B0), new IntPtr(0x30), new IntPtr(0x18), new IntPtr(0x20), new IntPtr(0x38) }); // <- rpgmaker_vx_ace 4:1.
                                                                                                                                                 //  debug.AddMessage<object>(new Message<object>(
                                                                                                                                                 //      "AdressValue: engine[" + new Numeric<int>(i).EngineValue + "] actual[" + new Numeric<int>(i).ActualValue + "]"
-                   // debug.AddMessage<object>(new Message<object>(i));                                                                                                                  //  ));
+                    debug.AddMessage<object>(new Message<object>(i));                                                                                                                  //  ));
                     // if (i != 0) _core._controller.ProcessMethods.Wpm<int>(
                     //      _core._controller.VxAceModule.RgssBase, new Numeric<int>(250, true).EngineValue
                     //      , new List<IntPtr>() { new IntPtr(0x25A8B0), new IntPtr(0x30), new IntPtr(0x18), new IntPtr(0x20), new IntPtr(0x38) });}}

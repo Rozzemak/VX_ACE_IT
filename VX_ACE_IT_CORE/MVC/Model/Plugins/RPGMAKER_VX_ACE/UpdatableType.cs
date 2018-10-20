@@ -18,8 +18,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
     public class UpdatableType<T> : BaseAsync<object>
     {
         public T Type;
-        public Dictionary<FieldInfo, List<List<IntPtr>>> Offsets = new Dictionary<FieldInfo, List<List<IntPtr>>>();
-        private ProcessMethods _processMethods;
+        public readonly Dictionary<FieldInfo, List<List<IntPtr>>> Offsets = new Dictionary<FieldInfo, List<List<IntPtr>>>();
+        private readonly ProcessMethods _processMethods;
 
         public UpdatableType(BaseDebug debug, ProcessMethods processMethods, T type, Dictionary<string, List<List<IntPtr>>> offsets, VxAceModule vxAceModule = null)
             : base(debug, processMethods._gameProcess)
@@ -100,31 +100,29 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                 while (true)
                 {
                     int i;
-                    foreach (var KeyPar in Offsets)
+                    foreach (var keyPar in Offsets)
                     {
-
-                            foreach (var offSetList in KeyPar.Value)
+                        foreach (var offSetList in keyPar.Value)
+                        {
+                            i = _processMethods.Rpm<int>(vxAceModule.RgssBase, offSetList);
+                            if (i > 0 && i < 10000)
                             {
-                                i = _processMethods.Rpm<int>(vxAceModule.RgssBase, offSetList);
-                                if (i > 0 && i < 10000)
-                                {
-                                    occurences.Add(i);
-                                    // KeyPar.Key.SetValue(Type, i);
-                                }
+                                occurences.Add(i);
+                                // KeyPar.Key.SetValue(Type, i);
                             }
-                            if (occurences.Any())
-                            {
-                                var grouped = occurences.ToLookup(x => x);
+                        }
+                        if (occurences.Any())
+                        {
+                            var grouped = occurences.ToLookup(x => x);
 
-                                if (grouped.Any())
-                                {
-                                    Type.GetType().GetField(KeyPar.Key.Name).SetValue(Type,
-                                        new Numeric<int>(grouped.First().Key));
-                                    Thread.Sleep(Precision);
-                                    Debug.AddMessage<object>(new Message<object>(Type.ToString()));
-                                }
+                            if (grouped.Any())
+                            {
+                                Type.GetType().GetField(keyPar.Key.Name).SetValue(Type,
+                                    new Numeric<int>(grouped.First().Key));
+                                Thread.Sleep(Precision);
+                                Debug.AddMessage<object>(new Message<object>(Type.ToString()));
                             }
- 
+                        }
                         occurences.Clear();
                     }
                 }

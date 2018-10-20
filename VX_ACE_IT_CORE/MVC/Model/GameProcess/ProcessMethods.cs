@@ -37,12 +37,13 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
             IntPtr address = lpBaseAddress;
 
             var lastOffset = offsets.LastOrDefault();
-            if(lastOffset != new IntPtr(0))
-            offsets.RemoveAt(offsets.Count-1);
+            int index = offsets.Count - 1;
+            if (index < 0)
+                index = 0;
 
-            foreach (var offset in offsets)
+            for (int i = 0; i < index; i++)
             {
-                address = Rpm<IntPtr>(IntPtr.Add(address, (int)offset));
+                address = Rpm<IntPtr>(IntPtr.Add(address, (int)offsets[i]));
             }
 
             return Rpm<T>(IntPtr.Add(address, (int)lastOffset));
@@ -78,12 +79,14 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
         {
             IntPtr address = lpBaseAddress;
 
-            var lastOffset = offsets.Last();
-            offsets.RemoveAt(offsets.Count - 1);
+            var lastOffset = offsets.LastOrDefault();
+            int index = offsets.Count - 1;
+            if (index < 0)
+                index = 0;
 
-            foreach (var offset in offsets)
+            for (int i = 0; i < index; i++)
             {
-                address = Rpm<IntPtr>(IntPtr.Add(address, (int)offset));
+                address = Rpm<IntPtr>(IntPtr.Add(address, (int)offsets[i]));
             }
 
             return Wpm<T>(IntPtr.Add(address, (int)lastOffset), value);
