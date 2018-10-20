@@ -51,15 +51,19 @@ namespace VX_ACE_IT_UI
         {
             config = new Config(debug);
 
-            App.Current.Dispatcher.Invoke(() =>
+            new Task(() =>
             {
                 if (!config.ConfigVariables.IsInitial)
                 {
-                    CloseAllDialogs();
-                    RootLogicStackPanel.Visibility = Visibility.Visible;
+                    App.Current.Dispatcher.Invoke(() =>
+                    {
+                        CloseAllDialogs();
+                        RootLogicStackPanel.Visibility = Visibility.Visible;
+                        ForceExitButtonsColors();
+                    });
                 }
-                ForceExitButtonsColors();
-            });
+            }); // .Start() if no config && is initial is chosen, but it´s annoying for debug, so implement later
+
             _core = new Core(debug, config);
             SubscribeEvents(_core);
 
@@ -233,12 +237,12 @@ namespace VX_ACE_IT_UI
                     int i = _core._controller.ProcessMethods.Rpm<int>(
                          _core._controller.VxAceModule.RgssBase
                         , new List<IntPtr>() { new IntPtr(0x25A8B0), new IntPtr(0x30), new IntPtr(0x18), new IntPtr(0x20), new IntPtr(0x38) }); // <- rpgmaker_vx_ace 4:1.
-                  //  debug.AddMessage<object>(new Message<object>(
-                  //      "AdressValue: engine[" + new Numeric<int>(i).EngineValue + "] actual[" + new Numeric<int>(i).ActualValue + "]"
-                  //  ));
-                    if(i!= 0) _core._controller.ProcessMethods.Wpm<int>(
-                        _core._controller.VxAceModule.RgssBase, new Numeric<int>(250, true).EngineValue
-                        , new List<IntPtr>() { new IntPtr(0x25A8B0), new IntPtr(0x30), new IntPtr(0x18), new IntPtr(0x20), new IntPtr(0x38) });
+                                                                                                                                                //  debug.AddMessage<object>(new Message<object>(
+                                                                                                                                                //      "AdressValue: engine[" + new Numeric<int>(i).EngineValue + "] actual[" + new Numeric<int>(i).ActualValue + "]"
+                   // debug.AddMessage<object>(new Message<object>(i));                                                                                                                  //  ));
+                    // if (i != 0) _core._controller.ProcessMethods.Wpm<int>(
+                    //      _core._controller.VxAceModule.RgssBase, new Numeric<int>(250, true).EngineValue
+                    //      , new List<IntPtr>() { new IntPtr(0x25A8B0), new IntPtr(0x30), new IntPtr(0x18), new IntPtr(0x20), new IntPtr(0x38) });}}
                 }
             }).Start();
 
@@ -266,9 +270,9 @@ namespace VX_ACE_IT_UI
                         if (!Is64BitProcess(process))
                         {
                             UIElement element = CloneUIElement(_processListDefaultItem);
-                            ((ListBoxItem) element).Content = process.ProcessName + "_" + process.Id;
-                            ((ListBoxItem) element).Visibility = Visibility.Visible;
-                            ((ListBoxItem) element).Selected += ListBoxItem_OnSelected;
+                            ((ListBoxItem)element).Content = process.ProcessName + "_" + process.Id;
+                            ((ListBoxItem)element).Visibility = Visibility.Visible;
+                            ((ListBoxItem)element).Selected += ListBoxItem_OnSelected;
                             ProcessListListBox.Items.Add(element);
                         }
                         else
@@ -279,7 +283,7 @@ namespace VX_ACE_IT_UI
                             ((ListBoxItem)element).Selected += ListBoxItem_OnSelected;
                             ((ListBoxItem)element).Background = Brushes.LightCoral;
                             ((ListBoxItem)element).ToolTip = "Not selectable, \nProcess is x64 => not compatible";
-                            ((ListBoxItem) element).Focusable = false;
+                            ((ListBoxItem)element).Focusable = false;
                             ProcessListListBox.Items.Add(element);
                         }
                     }

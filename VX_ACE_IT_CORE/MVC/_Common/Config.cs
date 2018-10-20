@@ -149,7 +149,7 @@ namespace VX_ACE_IT_CORE.MVC._Common
         public Config(BaseDebug debug, int width = 1280, int height = 720, string processName = "game", bool windowBorder = true, bool forceRes = true)
             : base(debug, null)
         {
-            AddWork(new Task<List<object>>(() =>
+            var tsk = new Task<List<object>>(() =>
             {
                 if (File.Exists(ConfigFileName) && CheckConfigIntegrity())
                 {
@@ -165,9 +165,12 @@ namespace VX_ACE_IT_CORE.MVC._Common
                     ConfigVariables.IsForceRes = forceRes;
                     ReplaceXmlConfig();
                 }
+
                 ConfigVariables.PropertyChanged += ConfigVariables_PropertyChanged;
                 return null;
-            }));
+            });
+            AddWork(tsk);
+            tsk.Wait(-1);
         }
 
         public Config(BaseDebug debug, bool diff)
@@ -237,7 +240,6 @@ namespace VX_ACE_IT_CORE.MVC._Common
                     try
                     {
                         ConfigVariables = (ConfigVariables) xmlSerializer.Deserialize(_xmlReader);
-                        _xmlReader.Dispose();
                     }
                     catch (Exception e)
                     {
@@ -247,7 +249,7 @@ namespace VX_ACE_IT_CORE.MVC._Common
                     }
                     finally
                     {
-
+                        _xmlReader.Dispose();
                     }
                 }
                 else

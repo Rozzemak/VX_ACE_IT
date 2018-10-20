@@ -27,7 +27,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
             this.Type = type;
             this._processMethods = processMethods;
             Init(offsets);
-            if (vxAceModule!= null) UpdatePrimitives(vxAceModule);
+            if (vxAceModule != null) UpdatePrimitives(vxAceModule);
         }
 
         void Init(Dictionary<string, List<List<IntPtr>>> offsets)
@@ -96,29 +96,36 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
             AddWork(new Task<List<object>>(() =>
             {
                 Thread.Sleep(3000);
+                List<int> occurences = new List<int>();
                 while (true)
                 {
                     int i;
                     foreach (var KeyPar in Offsets)
                     {
-                        try
-                        {
+
                             foreach (var offSetList in KeyPar.Value)
                             {
                                 i = _processMethods.Rpm<int>(vxAceModule.RgssBase, offSetList);
                                 if (i > 0 && i < 10000)
                                 {
-                                   // KeyPar.Key.SetValue(Type, i);
-
-                                   Type.GetType().GetField(KeyPar.Key.Name).SetValue(Type, new Numeric<int>(i));
+                                    occurences.Add(i);
+                                    // KeyPar.Key.SetValue(Type, i);
                                 }
                             }
-                            Thread.Sleep(Precision);
-                            Debug.AddMessage<object>(new Message<object>(Type.ToString()));
-                        }
-                        catch (Exception e)
-                        {
-                        }
+                            if (occurences.Any())
+                            {
+                                var grouped = occurences.ToLookup(x => x);
+
+                                if (grouped.Any())
+                                {
+                                    Type.GetType().GetField(KeyPar.Key.Name).SetValue(Type,
+                                        new Numeric<int>(grouped.First().Key));
+                                    Thread.Sleep(Precision);
+                                    Debug.AddMessage<object>(new Message<object>(Type.ToString()));
+                                }
+                            }
+ 
+                        occurences.Clear();
                     }
                 }
             }));

@@ -36,7 +36,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
         {
             IntPtr address = lpBaseAddress;
 
-            var lastOffset = offsets.Last();
+            var lastOffset = offsets.LastOrDefault();
+            if(lastOffset != new IntPtr(0))
             offsets.RemoveAt(offsets.Count-1);
 
             foreach (var offset in offsets)
