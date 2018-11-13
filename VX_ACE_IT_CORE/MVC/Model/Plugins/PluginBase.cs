@@ -18,7 +18,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
 
         protected readonly string ModuleName;
         protected readonly ProcessMethods ProcessMethods;
-        protected List<dynamic> UpdatableTypes = new List<dynamic>(); // Use this for init check ?... like evry 15 sec 
+        public List<dynamic> UpdatableTypes = new List<dynamic>(); // Use this for init check ?... like evry 15 sec 
         protected Action InitUpdatablesAction
         {
             get => _initUpdatablesAction;
@@ -37,15 +37,15 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
         {
             ProcessMethods = processMethods;
             ModuleName = moduleName;
+            UpdateBaseAddress();
             Init(moduleName, initUpdatablesAction);
         }
 
         protected void Init(string moduleName, Action initUpdatablesAction)
         {
             if (moduleName is null || initUpdatablesAction is null) return;
-            UpdateBaseAddress();
             InitUpdatablesAction = initUpdatablesAction;
-            InitUpdatablesAction.Invoke();
+            InitUpdatablesAction?.Invoke();
         }
 
         public void UpdateBaseAddress()

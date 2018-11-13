@@ -91,19 +91,20 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
             tsk.Wait(-1);
         }
 
-        private void BeginUpdatePrimitives(VxAceModule vxAceModule)
+        public void BeginUpdatePrimitives(PluginBase pluginBase)
         {
             AddWork(new Task<List<object>>(() =>
             {
                 var occurences = new List<KeyValuePair<IntPtr, int>>();
                 while (true)
                 {
+                    if(pluginBase.ModuleBaseAddr == IntPtr.Zero) Debug.AddMessage<object>(new Message<object>("Module address is not set. Engine values cannot be read.", MessageTypeEnum.Error));
                     int rangeTolerance = 0; // Not used I know, but can be moved to field ? or even as Type Field pair
                     foreach (var keyPar in Offsets)
                     {
                         foreach (var offSetList in keyPar.Value)
                         {
-                            rangeTolerance = _processMethods.Rpm<int>(vxAceModule.ModuleBaseAddr, offSetList, out var valAdress);
+                            rangeTolerance = _processMethods.Rpm<int>(pluginBase.ModuleBaseAddr, offSetList, out var valAdress);
                             if (rangeTolerance > 0 && rangeTolerance < 10000)
                             {
                                 occurences.Add(new KeyValuePair<IntPtr, int>(valAdress, rangeTolerance));
@@ -127,7 +128,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                         }
                         occurences.Clear();
                     }
-                    Thread.Sleep(3000);
+                    Thread.Sleep(Precision);
                 }
             }));
         }
