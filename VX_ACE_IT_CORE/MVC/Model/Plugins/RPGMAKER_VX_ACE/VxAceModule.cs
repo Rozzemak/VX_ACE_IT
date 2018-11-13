@@ -11,29 +11,23 @@ using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
 {
-    public class VxAceModule : BaseAsync<object>
+    public class VxAceModule : PluginBase
     {
-        private const string ModuleName = "RGSS301.dll";
-        private readonly ProcessMethods _processMethods;
-
-        public IntPtr RgssBase;
-
-        public UpdatableType<Player> PlayerUpdatable;
-
-        public VxAceModule(BaseDebug baseDebug, ProcessMethods processMethods, int precision = 17)
-        : base(baseDebug, processMethods._gameProcess, precision)
+        public VxAceModule(BaseDebug baseDebug, ProcessMethods processMethods, Action updatables, int precision = 17)
+        : base(baseDebug, processMethods, "RGSS301.DLL", updatables, precision)
         {
-            _processMethods = processMethods;
+            if (updatables is null)
+            {
+                InitUpdatables();
+            }
             UpdateBaseAddress();
-
-            InitUpdatables(baseDebug, processMethods, precision);
         }
 
-        public void InitUpdatables(BaseDebug debug, ProcessMethods processMethods, int precision)
+        public void InitUpdatables()
         {
-            PlayerUpdatable = new UpdatableType<Player>(debug, processMethods,
-                new Player(), new Dictionary<string, List<List<IntPtr>>>()
-                {
+            var playerUpdatable = new UpdatableType<Player>(this.Debug, this.ProcessMethods,
+             new Player(), new Dictionary<string, List<List<IntPtr>>>()
+             {
                     {"Hp", new List<List<IntPtr>>()
                     {
                         new List<IntPtr>(){ new IntPtr(0x25A8B0), new IntPtr(0x30), new IntPtr(0x18), new IntPtr(0x20), new IntPtr((0x38))},
@@ -45,23 +39,9 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                     {
                         new List<IntPtr>(){ new IntPtr(0x25A8B0), new IntPtr(0x30), new IntPtr(0x18), new IntPtr(0x20), new IntPtr((0x38+0x4))},
                     }},
-                }, this);
-        }
+             }, this);
 
-        public void UpdateBaseAddress()
-        {
-            if (!(_processMethods._gameProcess.GetModuleAddresByName(ModuleName) is null))
-                new Task(() =>
-                {
-                    while (true)
-                    {
-                        // if there is any problem, exchange will return previous value. useful ?
-                        Interlocked.Exchange(ref RgssBase, _processMethods._gameProcess.GetModuleAddresByName(ModuleName).BaseAddress);
-                        // NOOOOO RgssBase = _processMethods._gameProcess.GetModuleAddresByName(ModuleName).BaseAddress; 
-                        // There could be problem, with not enough updates for base adress. time/2 should work then.
-                        Thread.Sleep(Precision);
-                    }
-                }).Start();
+            this.UpdatableTypes.Add(playerUpdatable);
         }
 
         // This is useless, can´t think of usefull case.

@@ -27,7 +27,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
             this.Type = type;
             this._processMethods = processMethods;
             Init(offsets);
-            if (vxAceModule != null) UpdatePrimitives(vxAceModule);
+            if (vxAceModule != null) BeginUpdatePrimitives(vxAceModule);
         }
 
         void Init(Dictionary<string, List<List<IntPtr>>> offsets)
@@ -91,23 +91,22 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
             tsk.Wait(-1);
         }
 
-        void UpdatePrimitives(VxAceModule vxAceModule)
+        private void BeginUpdatePrimitives(VxAceModule vxAceModule)
         {
             AddWork(new Task<List<object>>(() =>
             {
-                IntPtr valAdress = new IntPtr(1);
-                List<KeyValuePair<IntPtr, int>> occurences = new List<KeyValuePair<IntPtr, int>>();
+                var occurences = new List<KeyValuePair<IntPtr, int>>();
                 while (true)
                 {
-                    int i = 0;
+                    int rangeTolerance = 0; // Not used I know, but can be moved to field ? or even as Type Field pair
                     foreach (var keyPar in Offsets)
                     {
                         foreach (var offSetList in keyPar.Value)
                         {
-                            i = _processMethods.Rpm<int>(vxAceModule.RgssBase, offSetList, out valAdress);
-                            if (i > 0 && i < 10000)
+                            rangeTolerance = _processMethods.Rpm<int>(vxAceModule.ModuleBaseAddr, offSetList, out var valAdress);
+                            if (rangeTolerance > 0 && rangeTolerance < 10000)
                             {
-                                occurences.Add(new KeyValuePair<IntPtr, int>(valAdress, i));
+                                occurences.Add(new KeyValuePair<IntPtr, int>(valAdress, rangeTolerance));
                                 // Debug.AddMessage<object>(new Message<object>("HP:"+valAdress.ToString("X")));
                                 // KeyPar.Key.SetValue(Type, i);
                             }
