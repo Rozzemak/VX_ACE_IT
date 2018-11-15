@@ -40,7 +40,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                                     new IntPtr(0x20),
                                     new IntPtr((0x38))
                                 },
-                                new List<IntPtr>() { }, // <- other possible offset value if multipointer rpm fails.
+                                new List<IntPtr>()
+                                 // <- other possible offset value if multipointer rpm fails.
                             }
                         }, // <- Do this for each field. Also, if we happen to have more fields than editable values.. 
                         // 2 solutions, 1a) do not do it -> Just create another type like DrawablePlayer or something.
@@ -54,7 +55,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                                     new IntPtr(0x30),
                                     new IntPtr(0x18),
                                     new IntPtr(0x20),
-                                    new IntPtr((0x38 + 0x4))
+                                    new IntPtr((0x38 - (0x4)))
                                 },
                             }
                         },

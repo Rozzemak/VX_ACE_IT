@@ -98,7 +98,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                 var occurences = new List<KeyValuePair<IntPtr, int>>();
                 while (true)
                 {
-                    if(pluginBase.ModuleBaseAddr == IntPtr.Zero) Debug.AddMessage<object>(new Message<object>("Module address is not set. Engine values cannot be read.", MessageTypeEnum.Error));
+                    if (pluginBase.ModuleBaseAddr == IntPtr.Zero) Debug.AddMessage<object>(new Message<object>("Module address is not set. Engine values cannot be read.", MessageTypeEnum.Error));
                     int rangeTolerance = 0; // Not used I know, but can be moved to field ? or even as Type Field pair
                     foreach (var keyPar in Offsets)
                     {
@@ -114,13 +114,15 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                         }
                         if (occurences.Any())
                         {
+                            // Theory is, that by the count of multipointer read values, most occured one will be the searched one.
                             var grouped = occurences.ToLookup(x => x);
 
                             if (grouped.Any())
                             {
+                                //Get Type, get fields by keypars, set them and debug.
                                 Type.GetType().GetField(keyPar.Key.Name).SetValue(Type,
                                 new KeyValuePair<IntPtr, Numeric<int>>(
-                                    grouped.FirstOrDefault().Key.Key, 
+                                    grouped.FirstOrDefault().Key.Key,
                                     new Numeric<int>(grouped.FirstOrDefault().Key.Value)));
                                 Thread.Sleep(Precision);
                                 Debug.AddMessage<object>(new Message<object>(Type.ToString()));
