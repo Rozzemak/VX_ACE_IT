@@ -57,28 +57,28 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                         MessageTypeEnum.Indifferent));
                 }
                 else
-                if (this.Type.GetType().GetFields().Length == Offsets.Count)
+                if (this.Type.GetType().GetFields().Count() == offsets.Count())
                 {
                     // Create OnOffsetUpdate delegate.
                     Debug.AddMessage<object>(new Message<object>(
-                        "[" + GetType().Name + "][" + this.Type.GetType().Name + "] all offsets loaded succesfully.",
+                        "[" + GetType().Name + "][" + this.Type.GetType().Name + "] all offsets loaded succesfully."+ this.Type.GetType().GetFields().Count(),
                         MessageTypeEnum.Standard));
                 }
-                else if (this.Type.GetType().GetFields().Length > 0)
+                else if (this.Type.GetType().GetFields().Count() > offsets.Count() && offsets.Any())
                 {
                     Debug.AddMessage<object>(new Message<object>(
                         "[" + GetType().Name + "][" + this.Type.GetType().Name + "] only some of the offsets were loaded.",
                         MessageTypeEnum.Indifferent));
                     //Offsets.TryGetValue(typeof(Player).GetField("Hp"), out var list);
                 }
-                else if (this.Type.GetType().GetFields().Length == 0)
+                else if (!offsets.Any())
                 {
                     Debug.AddMessage<object>(new Message<object>(
                         "[" + GetType().Name + "][" + this.Type.GetType().Name + "] none offsets were loaded.",
                         MessageTypeEnum.Error));
                 }
                 else { } // Wtf hapened here ?!
-                if (this.Type.GetType().GetFields().Length > 0)
+                if (offsets.Count > 0)
                 {
                     var dict = string.Join(";", Offsets);
                     Debug.AddMessage<object>(new Message<object>(

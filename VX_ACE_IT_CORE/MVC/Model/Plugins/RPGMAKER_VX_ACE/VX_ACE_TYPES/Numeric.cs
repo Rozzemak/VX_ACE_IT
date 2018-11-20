@@ -17,6 +17,12 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES
         /// </summary>
         public T ActualValue => EngineValue / (2 as dynamic);
 
+        // Used for serialisation
+        private Numeric()
+        {
+
+        }
+
         public Numeric(T value, bool actualValue = false)
         {
             if(!actualValue)

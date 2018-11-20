@@ -27,6 +27,7 @@ using VX_ACE_IT_CORE;
 using VX_ACE_IT_CORE.MVC.Model.GameWindow;
 using VX_ACE_IT_CORE.MVC._Common;
 using VX_ACE_IT_CORE.Debug;
+using VX_ACE_IT_CORE.MVC.Model.Offsets;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
 
 namespace VX_ACE_IT_UI
@@ -230,8 +231,9 @@ namespace VX_ACE_IT_UI
             //int address = Convert.ToInt32(AdressTextBox.Text,16);
             new Task(() =>
             {
+                OffsetLoader<Player> offset = new OffsetLoader<Player>(debug, _core._controller.ProcessMethods, _core._controller.PluginService.Plugins.First());
                 // Terraria cheatsheetTest: base: "THREADSTACK0"-00000FB8 + 0x54 + 0x24 + 0xEC + F0 + 388
-                while (true)
+                while (false)
                 {
                     Thread.Sleep(22);
                     int i = _core._controller.ProcessMethods.Rpm<int>(
