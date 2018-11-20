@@ -61,8 +61,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                 {
                     // Create OnOffsetUpdate delegate.
                     Debug.AddMessage<object>(new Message<object>(
-                        "[" + GetType().Name + "][" + this.Type.GetType().Name + "] all offsets loaded succesfully."+ this.Type.GetType().GetFields().Count(),
-                        MessageTypeEnum.Standard));
+                        "[" + GetType().Name + "][" + this.Type.GetType().Name + "] all offsets loaded succesfully. (Count): ["+ this.Type.GetType().GetFields().Count()+"]",
+                        MessageTypeEnum.Event));
                 }
                 else if (this.Type.GetType().GetFields().Count() > offsets.Count() && offsets.Any())
                 {

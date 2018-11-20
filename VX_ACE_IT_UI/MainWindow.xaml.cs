@@ -231,7 +231,6 @@ namespace VX_ACE_IT_UI
             //int address = Convert.ToInt32(AdressTextBox.Text,16);
             new Task(() =>
             {
-                OffsetLoader<Player> offset = new OffsetLoader<Player>(debug, _core._controller.ProcessMethods, _core._controller.PluginService.Plugins.First());
                 // Terraria cheatsheetTest: base: "THREADSTACK0"-00000FB8 + 0x54 + 0x24 + 0xEC + F0 + 388
                 while (false)
                 {

@@ -35,7 +35,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                     Plugins.ForEach(bs => bs.UpdatableTypes.ForEach(o => Debug.AddMessage<object>(new Message<object>(o.Type.ToString()))));
                 }
 
-            }).Start();
+            });
             
         }
     }

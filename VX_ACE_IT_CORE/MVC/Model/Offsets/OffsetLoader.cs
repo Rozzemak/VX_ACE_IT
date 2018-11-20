@@ -31,7 +31,6 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                 if (!(Type.Equals(default(object)))) // At least something defined was created.
                 {
                     Updatable = new UpdatableType<T>(debug, processMethods, Type, InitOffsets(Type));
-                    InitOffsets(Type);
                 }
             }
             else
@@ -79,26 +78,24 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                 if (offset != " ")
                                 {
                                     val = new IntPtr(
-                                        (uint) new System.ComponentModel.UInt32Converter().ConvertFromString(offset));
+                                        (uint)new System.ComponentModel.UInt32Converter().ConvertFromString(offset));
                                 }
-                                if(val != IntPtr.Zero)
-                                adresses.Add(val);
+                                if (val != IntPtr.Zero)
+                                    adresses.Add(val);
                                 val = IntPtr.Zero;
-                            }                        
+                            }
+                        }
+                        offsets.TryGetValue(field.Name, out var offsetlists2);
+                        offsetlists.Add(adresses);
+                        if (offsetlists2 is null) offsets.Add(field.Name, new List<List<IntPtr>>(offsetlists));
+                        else
+                        {
+                            offsetlists2.Add(adresses);
                         }
                     }
-                    
-                    offsetlists.Add(adresses);
-                }   
-                foreach (var field in typeof(T).GetFields())
-                {
-                    offsets.Add(field.Name, new List<List<IntPtr>>(offsetlists));
+                    offsetlists.Clear();
                 }
-                offsetlists.Clear();
             }
-
-            //val = offsets.First();
-
             return offsets;
         }
 
