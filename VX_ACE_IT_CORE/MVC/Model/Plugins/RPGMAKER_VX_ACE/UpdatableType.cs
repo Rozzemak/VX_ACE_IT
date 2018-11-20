@@ -21,13 +21,13 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
         public readonly Dictionary<FieldInfo, List<List<IntPtr>>> Offsets = new Dictionary<FieldInfo, List<List<IntPtr>>>();
         private readonly ProcessMethods _processMethods;
 
-        public UpdatableType(BaseDebug debug, ProcessMethods processMethods, T type, Dictionary<string, List<List<IntPtr>>> offsets, VxAceModule vxAceModule = null)
+        public UpdatableType(BaseDebug debug, ProcessMethods processMethods, T type, Dictionary<string, List<List<IntPtr>>> offsets, PluginBase module = null)
             : base(debug, processMethods._gameProcess)
         {
             this.Type = type;
             this._processMethods = processMethods;
             Init(offsets);
-            if (vxAceModule != null) BeginUpdatePrimitives(vxAceModule);
+            if (module != null) BeginUpdatePrimitives(module);
         }
 
         void Init(Dictionary<string, List<List<IntPtr>>> offsets)
