@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES
@@ -13,6 +16,12 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES
         /// Must be numeric.
         /// </summary>
         public T ActualValue => EngineValue / (2 as dynamic);
+
+        // Used for serialisation
+        private Numeric()
+        {
+
+        }
 
         public Numeric(T value, bool actualValue = false)
         {
@@ -29,6 +38,12 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES
             {
                 s += "[" + field.Name + ":" + this.GetType().GetField(field.Name).GetValue(this) + "]";
             }
+
+            foreach (var method in GetType().GetMethods().Where(info => info.IsSpecialName))
+            {
+                s += "[" + method.Name + ":" + GetType().GetMethod(method.Name)?.Invoke(this, method?.GetParameters()) + "]";
+            }
+
 
             s += "}";
 

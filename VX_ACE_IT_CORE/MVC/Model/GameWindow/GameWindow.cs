@@ -156,11 +156,11 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
             if ((style & WsPopup) != 0)
             {
                 //It's maximized
-                Debug.AddMessage<object>(new Message<object>("Windows is fullscreen"));
+                Debug.AddMessage<object>(new Message<object>("Window is fullscreen"));
                 return true;
             }
 
-            Debug.AddMessage<object>(new Message<object>("Windows is not fullscreen"));
+            Debug.AddMessage<object>(new Message<object>("Window is not fullscreen"));
             return false;
         }
 

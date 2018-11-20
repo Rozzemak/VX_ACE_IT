@@ -6,6 +6,7 @@ using System.Text;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
 using VX_ACE_IT_CORE.MVC.Model.GameWindow;
+using VX_ACE_IT_CORE.MVC.Model.Plugins;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE;
 using VX_ACE_IT_CORE.MVC._Common;
 
@@ -20,11 +21,7 @@ namespace VX_ACE_IT_CORE.MVC.Controller
         public readonly GameProcess GameProcess;
         public ProcessMethods ProcessMethods;
 
-        #region Modules
-        // Reminder, modules should only use a ProcessMethods,debug, precision.
-        public VxAceModule VxAceModule;
-
-        #endregion
+        public PluginService PluginService;
 
         public Controller(BaseDebug debug, Config config)
         {
@@ -33,26 +30,26 @@ namespace VX_ACE_IT_CORE.MVC.Controller
             GameProcess = new GameProcess(debug);
             _gameWindow = new GameWindow(debug, config, GameProcess);
 
-            GameProcess.OnNoProcessFound+= GameProcessOnOnNoProcessFound;
+            GameProcess.OnNoProcessFound += GameProcessOnOnNoProcessFound;
             GameProcess.OnProcessFound += GameProcessOnOnProcessFound;
         }
 
         private void GameProcessOnOnProcessFound(object sender, EventArgs eventArgs)
         {
             ProcessMethods = new ProcessMethods(GameProcess);
-            InitModules();
+            InitPlugins();
         }
 
         private void GameProcessOnOnNoProcessFound(object sender, EventArgs eventArgs)
         {
             ProcessMethods = null;
+            PluginService = null;
         }
 
-        private void InitModules()
+        private void InitPlugins()
         {
-            VxAceModule = new VxAceModule(debug, ProcessMethods, 17);
+            this.PluginService = new PluginService(this.debug, this.GameProcess, new List<PluginBase>(){ new VxAceModule(this.debug, ProcessMethods, null)}, 33);
         }
-
 
         public void SetWindowPosFromConfig()
         {

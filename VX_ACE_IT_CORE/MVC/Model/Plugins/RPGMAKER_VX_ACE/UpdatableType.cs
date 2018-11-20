@@ -21,13 +21,13 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
         public readonly Dictionary<FieldInfo, List<List<IntPtr>>> Offsets = new Dictionary<FieldInfo, List<List<IntPtr>>>();
         private readonly ProcessMethods _processMethods;
 
-        public UpdatableType(BaseDebug debug, ProcessMethods processMethods, T type, Dictionary<string, List<List<IntPtr>>> offsets, VxAceModule vxAceModule = null)
+        public UpdatableType(BaseDebug debug, ProcessMethods processMethods, T type, Dictionary<string, List<List<IntPtr>>> offsets, PluginBase module = null)
             : base(debug, processMethods._gameProcess)
         {
             this.Type = type;
             this._processMethods = processMethods;
             Init(offsets);
-            if (vxAceModule != null) UpdatePrimitives(vxAceModule);
+            if (module != null) BeginUpdatePrimitives(module);
         }
 
         void Init(Dictionary<string, List<List<IntPtr>>> offsets)
@@ -57,28 +57,28 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                         MessageTypeEnum.Indifferent));
                 }
                 else
-                if (this.Type.GetType().GetFields().Length == Offsets.Count)
+                if (this.Type.GetType().GetFields().Count() == offsets.Count())
                 {
                     // Create OnOffsetUpdate delegate.
                     Debug.AddMessage<object>(new Message<object>(
-                        "[" + GetType().Name + "][" + this.Type.GetType().Name + "] all offsets loaded succesfully.",
-                        MessageTypeEnum.Standard));
+                        "[" + GetType().Name + "][" + this.Type.GetType().Name + "] all offsets loaded succesfully. (Count): ["+ this.Type.GetType().GetFields().Count()+"]",
+                        MessageTypeEnum.Event));
                 }
-                else if (this.Type.GetType().GetFields().Length > 0)
+                else if (this.Type.GetType().GetFields().Count() > offsets.Count() && offsets.Any())
                 {
                     Debug.AddMessage<object>(new Message<object>(
                         "[" + GetType().Name + "][" + this.Type.GetType().Name + "] only some of the offsets were loaded.",
                         MessageTypeEnum.Indifferent));
                     //Offsets.TryGetValue(typeof(Player).GetField("Hp"), out var list);
                 }
-                else if (this.Type.GetType().GetFields().Length == 0)
+                else if (!offsets.Any())
                 {
                     Debug.AddMessage<object>(new Message<object>(
                         "[" + GetType().Name + "][" + this.Type.GetType().Name + "] none offsets were loaded.",
                         MessageTypeEnum.Error));
                 }
                 else { } // Wtf hapened here ?!
-                if (this.Type.GetType().GetFields().Length > 0)
+                if (offsets.Count > 0)
                 {
                     var dict = string.Join(";", Offsets);
                     Debug.AddMessage<object>(new Message<object>(
@@ -91,36 +91,38 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
             tsk.Wait(-1);
         }
 
-        void UpdatePrimitives(VxAceModule vxAceModule)
+        public void BeginUpdatePrimitives(PluginBase pluginBase)
         {
             AddWork(new Task<List<object>>(() =>
             {
-                IntPtr valAdress = new IntPtr(1);
-                List<KeyValuePair<IntPtr, int>> occurences = new List<KeyValuePair<IntPtr, int>>();
+                var occurences = new List<KeyValuePair<IntPtr, int>>();
                 while (true)
                 {
-                    int i = 0;
+                    if (pluginBase.ModuleBaseAddr == IntPtr.Zero) Debug.AddMessage<object>(new Message<object>("Module address is not set. Engine values cannot be read.", MessageTypeEnum.Error));
+                    int rangeTolerance = 0; // Not used I know, but can be moved to field ? or even as Type Field pair
                     foreach (var keyPar in Offsets)
                     {
                         foreach (var offSetList in keyPar.Value)
                         {
-                            i = _processMethods.Rpm<int>(vxAceModule.RgssBase, offSetList, out valAdress);
-                            if (i > 0 && i < 10000)
+                            rangeTolerance = _processMethods.Rpm<int>(pluginBase.ModuleBaseAddr, offSetList, out var valAdress);
+                            if (rangeTolerance > 0 && rangeTolerance < 10000)
                             {
-                                occurences.Add(new KeyValuePair<IntPtr, int>(valAdress, i));
+                                occurences.Add(new KeyValuePair<IntPtr, int>(valAdress, rangeTolerance));
                                 // Debug.AddMessage<object>(new Message<object>("HP:"+valAdress.ToString("X")));
                                 // KeyPar.Key.SetValue(Type, i);
                             }
                         }
                         if (occurences.Any())
                         {
+                            // Theory is, that by the count of multipointer read values, most occured one will be the searched one.
                             var grouped = occurences.ToLookup(x => x);
 
                             if (grouped.Any())
                             {
+                                //Get Type, get fields by keypars, set them and debug.
                                 Type.GetType().GetField(keyPar.Key.Name).SetValue(Type,
                                 new KeyValuePair<IntPtr, Numeric<int>>(
-                                    grouped.FirstOrDefault().Key.Key, 
+                                    grouped.FirstOrDefault().Key.Key,
                                     new Numeric<int>(grouped.FirstOrDefault().Key.Value)));
                                 Thread.Sleep(Precision);
                                 Debug.AddMessage<object>(new Message<object>(Type.ToString()));
@@ -128,7 +130,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                         }
                         occurences.Clear();
                     }
-                    Thread.Sleep(3000);
+                    Thread.Sleep(Precision);
                 }
             }));
         }

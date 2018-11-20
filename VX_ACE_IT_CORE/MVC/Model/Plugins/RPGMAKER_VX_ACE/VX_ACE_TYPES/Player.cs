@@ -36,7 +36,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES
             string s = "";
 
             s += "{(Adr:" + (obj).Key.ToString("X")+")";
-            s += "(Val:" + (obj).Value + ")}";
+            s += "(Val:" + (obj).Value?.ToString() + ")}";
             return s;
         }
     }
