@@ -18,6 +18,14 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
     public class UpdatableType<T> : BaseAsync<object>
     {
         public T Type;
+        /// <summary>
+        /// This is not in type because: 
+        /// <para> 1) You will have to declare it every time. </para>
+        /// <para> 2) The class cannot be derived. (Would not recommend it.) </para>
+        /// <para> 3) Class has to be super easy to declare and init. </para> 
+        /// <para> (int,..) Bottom range (Not included) | (..,int) Upper range (Included) </para>
+        /// </summary>
+        public Dictionary<string, (int, int)> ToleranceDict = new Dictionary<string, (int, int)>();
         public readonly Dictionary<FieldInfo, List<List<IntPtr>>> Offsets = new Dictionary<FieldInfo, List<List<IntPtr>>>();
         private readonly ProcessMethods _processMethods;
 
@@ -99,15 +107,17 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                 while (true)
                 {
                     if (pluginBase.ModuleBaseAddr == IntPtr.Zero) Debug.AddMessage<object>(new Message<object>("Module address is not set. Engine values cannot be read.", MessageTypeEnum.Error));
-                    int rangeTolerance = 0; // Not used I know, but can be moved to field ? or even as Type Field pair
+                    int readAddressVal = 0; // Not used I know, but can be moved to field ? or even as Type Field pair
                     foreach (var keyPar in Offsets)
                     {
+                        ToleranceDict.TryGetValue(keyPar.Key.Name, out var toleranceTuple);
                         foreach (var offSetList in keyPar.Value)
                         {
-                            rangeTolerance = _processMethods.Rpm<int>(pluginBase.ModuleBaseAddr, offSetList, out var valAdress);
-                            if (rangeTolerance > 0 && rangeTolerance < 10000)
+                            readAddressVal = _processMethods.Rpm<int>(pluginBase.ModuleBaseAddr, offSetList, out var valAdress);
+                            if (readAddressVal > toleranceTuple.Item1 && readAddressVal <= toleranceTuple.Item2)
                             {
-                                occurences.Add(new KeyValuePair<IntPtr, int>(valAdress, rangeTolerance));
+                               
+                                occurences.Add(new KeyValuePair<IntPtr, int>(valAdress, readAddressVal));
                                 // Debug.AddMessage<object>(new Message<object>("HP:"+valAdress.ToString("X")));
                                 // KeyPar.Key.SetValue(Type, i);
                             }
