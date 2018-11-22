@@ -75,7 +75,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                         {
                             foreach (var offset in list.Value.Split(' '))
                             {
-                                if (offset != " ")
+                                if (offset != " " && offset.Length > 0)
                                 {
                                     val = new IntPtr(
                                         (uint)new System.ComponentModel.UInt32Converter().ConvertFromString(offset));
