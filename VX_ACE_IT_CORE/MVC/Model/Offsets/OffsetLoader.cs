@@ -39,7 +39,6 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
             {
                 // Dynamically create type of undefined one. ... Use Loader with (dynamic/object??)   
             }
-
         }
 
         Dictionary<string, List<List<IntPtr>>> InitOffsets(out Dictionary<string, (int, int)> tolerances)
@@ -51,7 +50,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                 var path = Directory.GetCurrentDirectory()
                            + "/Offsets/"
                            + _plugin.GetType().Name.Substring(0, _plugin.GetType().Name.Length)
-                           + "/" + typeof(T).Name + ".xml";
+                           + "/" + typeof(T).Name + ".xml"; 
                 var xmlSerializer = new XmlSerializer(typeof(T));
                 Dictionary<string, List<List<IntPtr>>> offsets = new Dictionary<string, List<List<IntPtr>>>();
                 IntPtr val = IntPtr.Zero;

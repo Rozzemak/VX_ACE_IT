@@ -36,6 +36,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
             this._processMethods = processMethods;
             Init(offsets);
             if (module != null) BeginUpdatePrimitives(module);
+
         }
 
         void Init(Dictionary<string, List<List<IntPtr>>> offsets)
@@ -143,6 +144,11 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                     Thread.Sleep(Precision);
                 }
             }));
+        }
+
+        public void SetValue<TP> (string fieldName, TP t) where TP : struct
+        {
+            _processMethods.Wpm(((dynamic)Type.GetType().GetField(fieldName).GetValue(Type)).Key, t);
         }
 
         public string ToDebugString(IDictionary<FieldInfo, List<List<IntPtr>>> dictionary)
