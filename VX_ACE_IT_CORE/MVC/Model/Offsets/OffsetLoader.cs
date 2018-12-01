@@ -33,6 +33,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                 {
                     Updatable = new UpdatableType<T>(debug, processMethods, Type, InitOffsets(out var tolerances));
                     Updatable.ToleranceDict = tolerances;
+                    Updatable.WriteLoadedOffsets();
                 }
             }
             else
@@ -77,6 +78,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                         // offsetlist.InsertRange(0, reader.Element(field.Name)?.Attributes() .Cast<IntPtr>() ?? throw new InvalidOperationException());
                         if (!(reader.Root.Element(field.Name) is null) && reader.Root.Element(field.Name).HasAttributes)
                         {
+                            offsetlists.Clear();
                             foreach (XAttribute list in reader.Root.Element(field.Name)?.Attributes())
                             {
                                 if (list.Name.LocalName.ToLower().Contains("tolerance") && list.Value != " ")
@@ -91,7 +93,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                 {
                                     if (!list.Name.LocalName.ToLower().Contains("tolerance") && offset != " ")
                                     {
-                                        if (offset != " " && offset.Length > 0)
+                                        if (offset.Length > 0)
                                         {
                                             val = new IntPtr(
                                                 (uint) new System.ComponentModel.UInt32Converter()
@@ -103,18 +105,22 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                     }
                                     val = IntPtr.Zero;
                                 }
-                            }
-
-                            offsets.TryGetValue(field.Name, out var offsetlists2);
-                            offsetlists.Add(adresses);
-                            if (offsetlists2 is null) offsets.Add(field.Name, new List<List<IntPtr>>(offsetlists));
-                            else
-                            {
-                                offsetlists2.Add(adresses);
+                                if (adresses.Count != 0)
+                                {
+                                    if (offsets.ContainsKey(field.Name))
+                                    {
+                                        offsets.TryGetValue(field.Name, out var list2);
+                                        list2?.Add(new List<IntPtr>(adresses));
+                                    }
+                                    else
+                                    {
+                                        offsetlists.Add(new List<IntPtr>(adresses));
+                                        offsets.Add(field.Name, new List<List<IntPtr>>(offsetlists));
+                                    }
+                                }
+                                adresses.Clear();
                             }
                         }
-
-                        offsetlists.Clear();
                     }
                 }
                 return new List<object>() { offsets };

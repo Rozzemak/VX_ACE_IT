@@ -13,7 +13,7 @@ using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
 
-namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
+namespace VX_ACE_IT_CORE.MVC.Model.Plugins
 {
     public class UpdatableType<T> : BaseAsync<object>
     {
@@ -70,7 +70,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                 {
                     // Create OnOffsetUpdate delegate.
                     Debug.AddMessage<object>(new Message<object>(
-                        "[" + GetType().Name + "][" + this.Type.GetType().Name + "] all offsets loaded succesfully. (Count): ["+ this.Type.GetType().GetFields().Count()+"]",
+                        "[" + GetType().Name + "][" + this.Type.GetType().Name + "] all offsets loaded succesfully. (Count): [" + this.Type.GetType().GetFields().Count() + "]",
                         MessageTypeEnum.Event));
                 }
                 else if (this.Type.GetType().GetFields().Count() > offsets.Count() && offsets.Any())
@@ -86,13 +86,10 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                         "[" + GetType().Name + "][" + this.Type.GetType().Name + "] none offsets were loaded.",
                         MessageTypeEnum.Error));
                 }
-                else { } // Wtf hapened here ?!
                 if (offsets.Count > 0)
                 {
-                    var dict = string.Join(";", Offsets);
-                    Debug.AddMessage<object>(new Message<object>(
-                        "[" + this.Type.GetType().Name + "]" + ToDebugString(Offsets)
-                        , MessageTypeEnum.Standard));
+                    //Is called in offsetLoader, because of tolerances.
+                    //WriteLoadedOffsets();
                 }
                 return null;
             });
@@ -111,18 +108,29 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                     int readAddressVal = 0; // Not used I know, but can be moved to field ? or even as Type Field pair
                     foreach (var keyPar in Offsets)
                     {
-                        ToleranceDict.TryGetValue(keyPar.Key.Name, out var toleranceTuple);
-                        foreach (var offSetList in keyPar.Value)
-                        {
-                            readAddressVal = _processMethods.Rpm<int>(pluginBase.ModuleBaseAddr, offSetList, out var valAdress);
-                            if (readAddressVal > toleranceTuple.Item1 && readAddressVal <= toleranceTuple.Item2)
+                        if (ToleranceDict.TryGetValue(keyPar.Key.Name, out var toleranceTuple))
+                            foreach (var offSetList in keyPar.Value)
                             {
-                               
-                                occurences.Add(new KeyValuePair<IntPtr, int>(valAdress, readAddressVal));
-                                // Debug.AddMessage<object>(new Message<object>("HP:"+valAdress.ToString("X")));
-                                // KeyPar.Key.SetValue(Type, i);
+                                readAddressVal = _processMethods.Rpm<int>(pluginBase.ModuleBaseAddr, offSetList, out var valAdress);
+                                if (readAddressVal > toleranceTuple.Item1 && readAddressVal <= toleranceTuple.Item2)
+                                {
+
+                                    occurences.Add(new KeyValuePair<IntPtr, int>(valAdress, readAddressVal));
+                                    // Debug.AddMessage<object>(new Message<object>("HP:"+valAdress.ToString("X")));
+                                    // KeyPar.Key.SetValue(Type, i);
+                                }
                             }
-                        }
+                        else
+                            foreach (var offSetList in keyPar.Value)
+                            {
+                                readAddressVal = _processMethods.Rpm<int>(pluginBase.ModuleBaseAddr, offSetList, out var valAdress);
+                                if (valAdress != IntPtr.Zero)
+                                {
+                                    occurences.Add(new KeyValuePair<IntPtr, int>(valAdress, readAddressVal));
+                                    // Debug.AddMessage<object>(new Message<object>("HP:"+valAdress.ToString("X")));
+                                    // KeyPar.Key.SetValue(Type, i);
+                                }
+                            }
                         if (occurences.Any())
                         {
                             // Theory is, that by the count of multipointer read values, most occured one will be the searched one.
@@ -146,31 +154,45 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
             }));
         }
 
-        public void SetValue<TP> (string fieldName, TP t) where TP : struct
+        public void SetValue<TP>(string fieldName, TP t) where TP : struct
         {
             _processMethods.Wpm(((dynamic)Type.GetType().GetField(fieldName).GetValue(Type)).Key, t);
         }
 
         public string ToDebugString(IDictionary<FieldInfo, List<List<IntPtr>>> dictionary)
         {
-            return "{" + string.Join(",", dictionary.Select(kv => kv.Key.Name + "=" + WriteInpPtrList(kv.Value)).ToArray()) + "}";
+            return "{" + string.Join(",", dictionary.Select(kv => "\n" + kv.Key.Name + "=" + WriteInpPtrList(kv.Value, kv.Key.Name)).ToArray()) + "\n}<" + Type.GetType().Name + ">";
         }
 
-        private string WriteInpPtrList(List<List<IntPtr>> lists)
+        public void WriteLoadedOffsets()
+        {
+            var dict = string.Join(";", Offsets);
+            Debug.AddMessage<object>(new Message<object>(
+                "\n--[Init][" + this.Type.GetType().Name + "]--" + ToDebugString(Offsets) + "\n------------------"
+                , MessageTypeEnum.Standard));
+        }
+
+        private string WriteInpPtrList(List<List<IntPtr>> lists, string name)
         {
             //I know this is not nice solution, but what gives. No performance benefit 
             //from optimalisation, since this is just a init.
-            string strList = "";
+            int offsetId = 0;
+            string strList = "{";
             foreach (var list in lists)
             {
-                strList += "{";
+                strList += "\n[" + offsetId++ + "]{";
                 foreach (IntPtr val in list)
                 {
-                    strList += "[" + val.ToString("X") + "]";
+                    strList += "[0x" + val.ToString("X") + "]";
                 }
                 if (list.Count == 0) strList += "empty";
                 strList += "}";
             }
+
+            if(ToleranceDict.TryGetValue(name, out var value))
+            strList += "\nValTolerance:[" + value + "]}";
+            else
+                strList += "\nValTolerance:[Not yet loaded/null]}";
             return strList;
         }
     }

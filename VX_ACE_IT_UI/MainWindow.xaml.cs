@@ -28,6 +28,7 @@ using VX_ACE_IT_CORE.MVC.Model.GameWindow;
 using VX_ACE_IT_CORE.MVC._Common;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Offsets;
+using VX_ACE_IT_CORE.MVC.Model.Plugins;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
 
