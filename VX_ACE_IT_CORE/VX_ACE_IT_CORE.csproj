@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="KeyboardInterceptor" Version="1.0.0" />
     <PackageReference Include="Overlay.NET" Version="1.0.2" />
   </ItemGroup>
 

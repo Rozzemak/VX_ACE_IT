@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using Overlay.NET.Common;
 using Overlay.NET.Wpf;
 using Process.NET.Windows;
@@ -208,5 +210,12 @@ namespace VX_ACE_IT_CORE.MVC.Model.Overlay
 
         public void AddShape(Shape shape) => OverlayWindow.Add(shape);
 
+        public void AddEvent(Shape shape, Action action, Dispatcher dispatcher) => shape.MouseDown += (sender, args) =>
+        {
+            dispatcher.Invoke(() =>
+            {
+                action?.Invoke();
+            });
+        };
     }
 }

@@ -101,10 +101,10 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
         {
             AddWork(new Task<List<object>>(() =>
             {
+                if (pluginBase.ModuleBaseAddr == IntPtr.Zero) Debug.AddMessage<object>(new Message<object>("Module address is not set. Engine values cannot be read.", MessageTypeEnum.Error));
                 var occurences = new List<KeyValuePair<IntPtr, int>>();
                 while (true)
                 {
-                    if (pluginBase.ModuleBaseAddr == IntPtr.Zero) Debug.AddMessage<object>(new Message<object>("Module address is not set. Engine values cannot be read.", MessageTypeEnum.Error));
                     int readAddressVal = 0; // Not used I know, but can be moved to field ? or even as Type Field pair
                     foreach (var keyPar in Offsets)
                     {

@@ -22,6 +22,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using System.Xml;
 using VX_ACE_IT_CORE;
 using VX_ACE_IT_CORE.MVC.Model.GameWindow;
@@ -337,7 +338,23 @@ namespace VX_ACE_IT_UI
 
         private void Test_Click(object sender, RoutedEventArgs e)
         {
-            gameOverlayPlugin.Overlay.AddShape(new Rectangle(){Visibility = Visibility.Visible, Name = "rect01", Height = 10, Width = 10, Fill = Brushes.BurlyWood});
+            var shape = new Rectangle()
+            {
+                Visibility = Visibility.Visible,
+                Name = "rect01",
+                Height = 50,
+                Width = 50,
+                Fill = Brushes.BurlyWood,
+                Focusable = true,
+                ToolTip = "hey, im over"
+            };
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                shape.MouseEnter += (o, args) =>
+                    debug.AddMessage<object>(new Message<object>(shape.GetType() + " was clicked."));
+                gameOverlayPlugin.Overlay.AddShape(shape);
+                gameOverlayPlugin.Overlay.AddEvent(shape,() => debug.AddMessage<object>(new Message<object>(shape.GetType() + " was clicked.")), Dispatcher.CurrentDispatcher);
+            });         
         }
     }
 }

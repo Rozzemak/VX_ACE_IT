@@ -27,12 +27,12 @@ namespace VX_ACE_IT_CORE.MVC.Model.Overlay
         /// <summary>
         ///     The process sharp
         /// </summary>
-        private static ProcessSharp _processSharp;
+        private ProcessSharp _processSharp;
 
         /// <summary>
         ///     The work
         /// </summary>
-        private static bool _work;
+        private bool _work;
 
         /// <summary>
         ///     Starts the demo.
@@ -96,7 +96,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Overlay
             Log.Debug("Demo complete.");
         }
 
-        private static void OnDraw(object sender, DrawingContext context)
+        private void OnDraw(object sender, DrawingContext context)
         {
             // Draw a formatted text string into the DrawingContext.
             context.DrawText(
@@ -105,5 +105,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Overlay
 
             context.DrawLine(new Pen(Brushes.Blue, 10), new Point(100, 100), new Point(10, 10));
         }
+
+
     }
 }
