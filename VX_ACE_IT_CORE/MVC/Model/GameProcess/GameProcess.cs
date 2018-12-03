@@ -13,7 +13,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
     public class GameProcess
     {
         private readonly BaseDebug _debug;
-        private Process _process { get;  set; }
+        private System.Diagnostics.Process _process { get;  set; }
 
         public event EventHandler OnProcessFound;
         public event EventHandler OnNoProcessFound;
@@ -24,7 +24,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
             _debug = debug;
         }
 
-        public GameProcess(BaseDebug debug,  Process process)
+        public GameProcess(BaseDebug debug,  System.Diagnostics.Process process)
         {
             if (Process == null)
             {
@@ -34,7 +34,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
             this._process = process;
         }
 
-        public Process Process
+        public System.Diagnostics.Process Process
         {
             get
             {
@@ -52,8 +52,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
             int.TryParse(name.Split('_').Last(), out int pId);
             if (pId == 0)
             {
-                if (Process.GetProcessesByName(name).Length > 0)
-                    _process = Process.GetProcessesByName(name).First() ??
+                if (System.Diagnostics.Process.GetProcessesByName(name).Length > 0)
+                    _process = System.Diagnostics.Process.GetProcessesByName(name).First() ??
                                throw new Exception("No process found with name: [" + name + "].");
                 else
                 {
@@ -81,7 +81,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
             }
             else
             {
-                _process = Process.GetProcessById(pId);
+                _process = System.Diagnostics.Process.GetProcessById(pId);
                 if (IsProcessFetched())
                 {
                     OnProcessFound?.Invoke(this, EventArgs.Empty);
@@ -111,8 +111,9 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
             OnKill?.Invoke(this, EventArgs.Empty);
         }
 
-        public ProcessModule GetModuleAddresByName(string name)
+        public ProcessModule GetModuleAddresByName(string name, bool is32Bit = true)
         {
+            if(is32Bit)
             foreach (ProcessModule module in _process.Modules)
             {
                 if (module.ModuleName == name) return module;

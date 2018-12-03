@@ -28,6 +28,7 @@ using VX_ACE_IT_CORE.MVC.Model.GameWindow;
 using VX_ACE_IT_CORE.MVC._Common;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Offsets;
+using VX_ACE_IT_CORE.MVC.Model.Overlay;
 using VX_ACE_IT_CORE.MVC.Model.Plugins;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
@@ -223,8 +224,10 @@ namespace VX_ACE_IT_UI
 
         }
 
+        private GameOverlayPlugin gameOverlayPlugin = new GameOverlayPlugin();
         private void RPMButton_OnClick(object sender, RoutedEventArgs e)
         {
+            gameOverlayPlugin.StartDemo(_core._controller.GameProcess.Process, App.Current.Dispatcher);
 
             //debug.AddMessage<object>(new Message<object>(
             //    //"AdressValue: " + _core._controller.ProcessMethods.RPM<int>(new IntPtr(0x0F6532D0)) +""
@@ -272,7 +275,7 @@ namespace VX_ACE_IT_UI
                     ProcessListListBox.Items.Clear();
                     string processName = (sender as TextBox)?.Text ?? "";
 
-                    foreach (var process in Process.GetProcessesByName(processName))
+                    foreach (var process in System.Diagnostics.Process.GetProcessesByName(processName))
                     {
                         if (!Is64BitProcess(process))
                         {
@@ -295,7 +298,7 @@ namespace VX_ACE_IT_UI
                         }
                     }
 
-                    ProcessListExpander.IsExpanded = Process.GetProcessesByName(processName).Length > 0;
+                    ProcessListExpander.IsExpanded = System.Diagnostics.Process.GetProcessesByName(processName).Length > 0;
                 }
             });
         }
@@ -314,7 +317,7 @@ namespace VX_ACE_IT_UI
             return (UIElement)XamlReader.Load(xmlTextReader);
         }
 
-        private bool Is64BitProcess(Process process)
+        private bool Is64BitProcess(System.Diagnostics.Process process)
         {
             if (!Environment.Is64BitOperatingSystem)
                 return false;
@@ -328,9 +331,13 @@ namespace VX_ACE_IT_UI
         [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool IsWow64Process([In] IntPtr processHandle, [Out, MarshalAs(UnmanagedType.Bool)] out bool wow64Process);
+
+
         #endregion
 
-
-
+        private void Test_Click(object sender, RoutedEventArgs e)
+        {
+            gameOverlayPlugin.Overlay.AddShape(new Rectangle(){Visibility = Visibility.Visible, Name = "rect01", Height = 10, Width = 10, Fill = Brushes.BurlyWood});
+        }
     }
 }
