@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -209,6 +213,18 @@ namespace VX_ACE_IT_CORE.MVC.Model.Overlay
         }
 
         public void AddShape(Shape shape) => OverlayWindow.Add(shape);
+
+        public FrameworkElement GetUiElement(string name)
+        {
+            var uiElementCollection = (OverlayWindow.Content as Canvas)?.Children;
+            if (uiElementCollection != null)
+                foreach (FrameworkElement uielement in uiElementCollection)
+                {
+                    if (uielement.Name == name) return uielement;
+                }
+
+            return null;
+        }
 
         public void AddEvent(Shape shape, Action action, Dispatcher dispatcher) => shape.MouseDown += (sender, args) =>
         {

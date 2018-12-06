@@ -341,7 +341,7 @@ namespace VX_ACE_IT_UI
             var shape = new Rectangle()
             {
                 Visibility = Visibility.Visible,
-                Name = "rect01",
+                Name = "rectiongle",
                 Height = 50,
                 Width = 50,
                 Fill = Brushes.BurlyWood,
@@ -350,6 +350,14 @@ namespace VX_ACE_IT_UI
             };
             App.Current.Dispatcher.Invoke(() =>
             {
+                TranslateTransform transform = new TranslateTransform(shape.RenderTransform.Value.M21, shape.RenderTransform.Value.M22);
+                _core._controller.Keyboard.Interceptor.KeyDown += (o, args) =>
+                {
+                    //var n = shape.RenderTransform.Value.M12;
+                    UIElement uiElement = gameOverlayPlugin.Overlay.GetUiElement("rectiongle");
+                    transform.X += 5;
+                    uiElement.RenderTransform = transform;
+                }; 
                 shape.MouseEnter += (o, args) =>
                     debug.AddMessage<object>(new Message<object>(shape.GetType() + " was clicked."));
                 gameOverlayPlugin.Overlay.AddShape(shape);
