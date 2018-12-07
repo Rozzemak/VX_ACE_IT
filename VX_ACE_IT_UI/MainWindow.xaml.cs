@@ -41,10 +41,12 @@ namespace VX_ACE_IT_UI
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Config config;
+        private Config _config;
         private Core _core;
-        private BaseDebug debug = new BaseDebug();
+        private readonly BaseDebug _debug = new BaseDebug();
         private UIElement _processListDefaultItem = new UIElement();
+
+        
 
         public MainWindow()
         {
@@ -54,11 +56,11 @@ namespace VX_ACE_IT_UI
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            config = new Config(debug);
+            _config = new Config(_debug);
 
             new Task(() =>
             {
-                if (!config.ConfigVariables.IsInitial)
+                if (!_config.ConfigVariables.IsInitial)
                 {
                     App.Current.Dispatcher.Invoke(() =>
                     {
@@ -69,7 +71,7 @@ namespace VX_ACE_IT_UI
                 }
             }); // .Start() if no config && is initial is chosen, but it´s annoying for debug, so implement later
 
-            _core = new Core(debug, config);
+            _core = new Core(_debug, _config);
             SubscribeEvents(_core);
 
             //AutoFetch is so annoying...
@@ -85,11 +87,11 @@ namespace VX_ACE_IT_UI
 
         private void InitUiFromConfig()
         {
-            config.LoadXmlConfig();
+            _config.LoadXmlConfig();
 
-            WelcomeProcessNameTextBox.Text = config.ConfigVariables.ProcessName;
-            WelcomeResolution.Text = config.ConfigVariables.Width + "x" + config.ConfigVariables.Height;
-            WelcomeBorder.IsChecked = config.ConfigVariables.IsWindowBorder;
+            WelcomeProcessNameTextBox.Text = _config.ConfigVariables.ProcessName;
+            WelcomeResolution.Text = _config.ConfigVariables.Width + "x" + _config.ConfigVariables.Height;
+            WelcomeBorder.IsChecked = _config.ConfigVariables.IsWindowBorder;
         }
 
         private void SubscribeEvents(Core core)
@@ -105,8 +107,8 @@ namespace VX_ACE_IT_UI
             {
                 ShowWelcomeScreen();
                 MainWindow_Loaded(this, null);
-                this.WelcomeProcessNameTextBox.Text = config.ConfigVariables.ProcessName.Split('_').Length > 1
-                    ? config.ConfigVariables.ProcessName.Split('_').First() : config.ConfigVariables.ProcessName;
+                this.WelcomeProcessNameTextBox.Text = _config.ConfigVariables.ProcessName.Split('_').Length > 1
+                    ? _config.ConfigVariables.ProcessName.Split('_').First() : _config.ConfigVariables.ProcessName;
             });
         }
 
@@ -134,7 +136,7 @@ namespace VX_ACE_IT_UI
         private void InjectButton_Click(object sender, RoutedEventArgs e)
         {
             _core._controller.SetWindowPosFromConfig();
-            _core._controller.SetWindowStyle(config.ConfigVariables.IsWindowBorder ? WindowStyles.NoBorder : WindowStyles.Border);
+            _core._controller.SetWindowStyle(_config.ConfigVariables.IsWindowBorder ? WindowStyles.NoBorder : WindowStyles.Border);
         }
 
         private void CloseAllDialogs()
@@ -177,7 +179,7 @@ namespace VX_ACE_IT_UI
             }
             if (width != 0 && height != 0)
             {
-                config.ConfigVariables = new ConfigVariables()
+                _config.ConfigVariables = new ConfigVariables()
                 {
                     Width = width,
                     Height = height,
@@ -185,8 +187,8 @@ namespace VX_ACE_IT_UI
                     IsWindowBorder = WelcomeBorder.IsChecked.Value,
                     ProcessName = WelcomeProcessNameTextBox.Text
                 };
-                config.ReplaceXmlConfig();
-                _core._controller.GameProcess.FetchProcess(config.ConfigVariables.ProcessName);
+                _config.ReplaceXmlConfig();
+                _core._controller.GameProcess.FetchProcess(_config.ConfigVariables.ProcessName);
             }
             else
             {
@@ -217,6 +219,11 @@ namespace VX_ACE_IT_UI
         {
             App.Current.MainWindow.Visibility = Visibility.Collapsed;
 
+            this.Dispatcher.Invoke(() =>
+            {
+               _core._controller.GameOverlayPlugin.Overlay.BeforeDispose();
+            });
+
             new Task(() =>
             {
                 Thread.Sleep(10);
@@ -225,17 +232,16 @@ namespace VX_ACE_IT_UI
 
         }
 
-        private GameOverlayPlugin gameOverlayPlugin = new GameOverlayPlugin();
         private void RPMButton_OnClick(object sender, RoutedEventArgs e)
         {
-            gameOverlayPlugin.StartDemo(_core._controller.GameProcess.Process, App.Current.Dispatcher);
+            _core._controller.GameOverlayPlugin.StartDemo(_core._controller.GameProcess.Process, App.Current.Dispatcher);
 
             //debug.AddMessage<object>(new Message<object>(
             //    //"AdressValue: " + _core._controller.ProcessMethods.RPM<int>(new IntPtr(0x0F6532D0)) +""
             //    "AdressValue: " + _core._controller.ProcessMethods.Rpm<int>(new IntPtr(Convert.ToUInt32(AdressTextBox.Text, 16))) + ""
             //    ));
             //int address = Convert.ToInt32(AdressTextBox.Text,16);
-            this.debug.AddMessage<object>(new Message<object>((_core._controller.PluginService.Plugins.First().UpdatableTypes.First() as UpdatableType<Player>).Type.ToString()));   
+            this._debug.AddMessage<object>(new Message<object>((_core._controller.PluginService.Plugins.First().UpdatableTypes.First() as UpdatableType<Player>).Type.ToString()));   
             (_core._controller.PluginService.Plugins.First().UpdatableTypes.First() as UpdatableType<Player>)?.SetValue("Hp", new Numeric<int>(460, true).EngineValue);
             new Task(() =>
             {
@@ -249,7 +255,7 @@ namespace VX_ACE_IT_UI
                     // <- rpgmaker_vx_ace 4:1.                                                                                                                                     
                     //  debug.AddMessage<object>(new Message<object>(                                                                               
                     //      "AdressValue: engine[" + new Numeric<int>(i).EngineValue + "] actual[" + new Numeric<int>(i).ActualValue + "]"
-                    debug.AddMessage<object>(new Message<object>(i+"bs" + _core._controller.PluginService.Plugins.First().ModuleBaseAddr));                                                                                 
+                    _debug.AddMessage<object>(new Message<object>(i+"bs" + _core._controller.PluginService.Plugins.First().ModuleBaseAddr));                                                                                 
                     //  ));
                     // if (i != 0) _core._controller.ProcessMethods.Wpm<int>(
                     //      _core._controller.VxAceModule.RgssBase, new Numeric<int>(250, true).EngineValue
@@ -264,8 +270,6 @@ namespace VX_ACE_IT_UI
             WelcomeProcessNameTextBox.Text = (sender as ListBoxItem)?.Content.ToString()
                                              ?? throw new InvalidOperationException("ListBox is null (UI-Welcome)");
         }
-
-
 
         private void WelcomeProcessNameTextBox_OnTextChanged(object sender, TextChangedEventArgs e)
         {
@@ -354,14 +358,14 @@ namespace VX_ACE_IT_UI
                 _core._controller.Keyboard.Interceptor.KeyDown += (o, args) =>
                 {
                     //var n = shape.RenderTransform.Value.M12;
-                    UIElement uiElement = gameOverlayPlugin.Overlay.GetUiElement("rectiongle");
+                    UIElement uiElement = _core._controller.GameOverlayPlugin.Overlay.GetUiElement("rectiongle");
                     transform.X += 5;
                     uiElement.RenderTransform = transform;
                 }; 
                 shape.MouseEnter += (o, args) =>
-                    debug.AddMessage<object>(new Message<object>(shape.GetType() + " was clicked."));
-                gameOverlayPlugin.Overlay.AddShape(shape);
-                gameOverlayPlugin.Overlay.AddEvent(shape,() => debug.AddMessage<object>(new Message<object>(shape.GetType() + " was clicked.")), Dispatcher.CurrentDispatcher);
+                    _debug.AddMessage<object>(new Message<object>(shape.GetType() + " was clicked."));
+                _core._controller.GameOverlayPlugin.Overlay.AddShape(shape);
+                _core._controller.GameOverlayPlugin.Overlay.AddEvent(shape,() => _debug.AddMessage<object>(new Message<object>(shape.GetType() + " was clicked.")), Dispatcher.CurrentDispatcher);
             });         
         }
     }

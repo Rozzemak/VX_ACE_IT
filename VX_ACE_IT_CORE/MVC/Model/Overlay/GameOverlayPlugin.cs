@@ -45,7 +45,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Overlay
                 var process = gameProcess;
 
                 _processSharp = new ProcessSharp(process, MemoryType.Remote);
-                Overlay = new GameOverlay();
+                Overlay = new GameOverlay(uiApp);
 
                 var wpfOverlay = Overlay;
 

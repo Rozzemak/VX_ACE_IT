@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -44,6 +46,12 @@ namespace VX_ACE_IT_CORE.MVC.Model.Overlay
         private Line _line;
         private Polygon _polygon;
         private Rectangle _rectangle;
+        private readonly Dispatcher _dispatcher;
+
+        public GameOverlay(Dispatcher dispatcher)
+        {
+            this._dispatcher = dispatcher;
+        }
 
         public override void Enable()
         {
@@ -134,14 +142,24 @@ namespace VX_ACE_IT_CORE.MVC.Model.Overlay
                 Disable();
             }
 
-            OverlayWindow?.Hide();
-            OverlayWindow?.Close();
-            OverlayWindow = null;
+            BeforeDispose();
+
             _tickEngine.Stop();
             Settings.Save();
 
             base.Dispose();
             _isDisposed = true;
+        }
+
+        public void BeforeDispose()
+        {
+            if(!(this.OverlayWindow is null))
+            _dispatcher.Invoke(() =>
+            {
+                OverlayWindow?.Hide();
+                OverlayWindow?.Close();
+                OverlayWindow = null;
+            });
         }
 
         ~GameOverlay()
