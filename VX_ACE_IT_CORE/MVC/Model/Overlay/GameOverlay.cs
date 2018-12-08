@@ -97,7 +97,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Overlay
         {
             // This will only be true if the target window is active
             // (or very recently has been, depends on your update rate)
-            if (OverlayWindow.IsVisible)
+            if (OverlayWindow?.IsVisible ?? false)
             {
                 OverlayWindow.Update();
             }
@@ -112,18 +112,18 @@ namespace VX_ACE_IT_CORE.MVC.Model.Overlay
                 _isSetup = true;
             }
 
-            var activated = TargetWindow.IsActivated;
-            var visible = OverlayWindow.IsVisible;
+            var activated = TargetWindow?.IsActivated ?? false;
+            var visible = OverlayWindow?.IsVisible ?? false;
 
             // Ensure window is shown or hidden correctly prior to updating
             if (!activated && visible)
             {
-                OverlayWindow.Hide();
+                OverlayWindow?.Hide();
             }
 
             else if (activated && !visible)
             {
-                OverlayWindow.Show();
+                OverlayWindow?.Show();
             }
         }
 
