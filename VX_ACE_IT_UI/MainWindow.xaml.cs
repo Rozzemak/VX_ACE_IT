@@ -229,12 +229,12 @@ namespace VX_ACE_IT_UI
                 Thread.Sleep(10);
                 Environment.Exit(0);
             }).Start();
-
+            
         }
 
         private void RPMButton_OnClick(object sender, RoutedEventArgs e)
         {
-            _core._controller.GameOverlayPlugin.StartDemo(_core._controller.GameProcess.Process, App.Current.Dispatcher);
+            _core._controller.GameOverlayPlugin.StartDemo(_core._controller.GameProcess.Process, Application.Current.Dispatcher);
 
             //debug.AddMessage<object>(new Message<object>(
             //    //"AdressValue: " + _core._controller.ProcessMethods.RPM<int>(new IntPtr(0x0F6532D0)) +""

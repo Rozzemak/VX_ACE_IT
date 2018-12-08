@@ -19,7 +19,11 @@
 
   <ItemGroup>
     <PackageReference Include="Open.WinKeyboardHook" Version="1.0.14" />
-    <PackageReference Include="Overlay.NET" Version="1.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Overlay.NET-master\src\Overlay.NET\Overlay.NET.csproj" />
+    <ProjectReference Include="..\Process.NET-master\src\Process.NET\Process.NET.csproj" />
   </ItemGroup>
 
   <ItemGroup>

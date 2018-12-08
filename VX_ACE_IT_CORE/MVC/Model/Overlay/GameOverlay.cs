@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,7 +14,6 @@ using System.Windows.Threading;
 using Overlay.NET.Common;
 using Overlay.NET.Wpf;
 using Process.NET.Windows;
-using SharpDX.Direct2D1;
 using OverlayWindow = Overlay.NET.Wpf.OverlayWindow;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Overlay
@@ -127,7 +127,10 @@ namespace VX_ACE_IT_CORE.MVC.Model.Overlay
             }
         }
 
-        public override void Update() => _tickEngine.Pulse();
+        public override void Update()
+        {
+            _tickEngine.Pulse();
+        }
 
         // Clear objects
         public override void Dispose()
@@ -153,13 +156,13 @@ namespace VX_ACE_IT_CORE.MVC.Model.Overlay
 
         public void BeforeDispose()
         {
-            if(!(this.OverlayWindow is null))
-            _dispatcher.Invoke(() =>
-            {
-                OverlayWindow?.Hide();
-                OverlayWindow?.Close();
-                OverlayWindow = null;
-            });
+            if (!(this.OverlayWindow is null))
+                _dispatcher.Invoke(() =>
+                {
+                    OverlayWindow?.Hide();
+                    OverlayWindow?.Close();
+                    OverlayWindow = null;
+                });
         }
 
         ~GameOverlay()

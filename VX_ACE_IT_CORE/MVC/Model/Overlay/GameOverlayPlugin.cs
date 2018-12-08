@@ -37,15 +37,15 @@ namespace VX_ACE_IT_CORE.MVC.Model.Overlay
         /// <summary>
         ///     Starts the demo.
         /// </summary>
-        public void StartDemo(System.Diagnostics.Process gameProcess, Dispatcher uiApp)
+        public void StartDemo(System.Diagnostics.Process gameProcess, Dispatcher dispatcher)
         {
-            uiApp.Invoke(() =>
+            dispatcher.Invoke(() =>
             {
                 // Set up objects/overlay
                 var process = gameProcess;
 
                 _processSharp = new ProcessSharp(process, MemoryType.Remote);
-                Overlay = new GameOverlay(uiApp);
+                Overlay = new GameOverlay(dispatcher);
 
                 var wpfOverlay = Overlay;
 
@@ -85,7 +85,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Overlay
                 while (_work)
                 {
                     Thread.Sleep(16);
-                    uiApp.Invoke(() =>
+                    dispatcher.Invoke(() =>
                     {
                         Overlay.Update();
                     });
