@@ -100,7 +100,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                                     .ConvertFromString(offset));
                                         }
 
-                                        if (val != IntPtr.Zero)
+                                        if (val != IntPtr.Zero || offset == "0x0")
                                             adresses.Add(val);
                                     }
                                     val = IntPtr.Zero;

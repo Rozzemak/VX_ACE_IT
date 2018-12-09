@@ -221,7 +221,7 @@ namespace VX_ACE_IT_UI
 
             this.Dispatcher.Invoke(() =>
             {
-               _core._controller.GameOverlayPlugin?.Overlay.BeforeDispose();
+               _core._controller?.GameOverlayPlugin?.Overlay?.BeforeDispose();
             });
 
             new Task(() =>
