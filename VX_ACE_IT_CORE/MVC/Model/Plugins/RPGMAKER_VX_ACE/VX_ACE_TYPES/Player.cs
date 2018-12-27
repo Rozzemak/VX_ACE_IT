@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using VX_ACE_IT_CORE.MVC.Model.Interfaces;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES
 {
@@ -18,26 +19,9 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES
 
         public override string ToString()
         {
-            string s = "\n----[" + GetType().Name +"]----\n";
-            s += "{";
-            foreach (var field in GetType().GetFields())
-            {
-                 var val = this.GetType().GetField(field.Name).GetValue(this);
-                s += "[" + field.Name + ":" + Stringify(val) + "]\n";
-            }
-
-            s += "}";
-
-            return s;
+            return this.Stringify();
         }
 
-        public string Stringify(dynamic obj)
-        {
-            string s = "";
-
-            s += "{(Adr:" + (obj).Key.ToString("X")+")";
-            s += "(Val:" + (obj).Value?.ToString() + ")}";
-            return s;
-        }
+       
     }
 }

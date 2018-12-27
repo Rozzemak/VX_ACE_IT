@@ -9,6 +9,5 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES
         public int Id, Count;
         public string Name, Description, Effect;
         public Numeric<int> Price;
-
     }
 }

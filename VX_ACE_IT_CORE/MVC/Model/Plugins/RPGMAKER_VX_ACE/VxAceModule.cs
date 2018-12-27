@@ -72,9 +72,10 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
 
 
                 var playerUpdatable = new OffsetLoader<Player>(Debug, ProcessMethods, this).Updatable;
-                playerUpdatable.BeginUpdatePrimitives(this);
-                //playerUpdatable.BeginUpdatePrimitives(this);
-                this.UpdatableTypes.Add(playerUpdatable);
+                AddUpdatable(playerUpdatable);
+
+                var gameUpdatable = new OffsetLoader<GameVxAce>(Debug, ProcessMethods, this).Updatable;
+                AddUpdatable(gameUpdatable);
             });
 
             InitUpdatablesAction = action;
