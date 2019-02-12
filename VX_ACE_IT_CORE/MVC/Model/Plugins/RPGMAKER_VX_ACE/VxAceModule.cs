@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
 using VX_ACE_IT_CORE.MVC.Model.Offsets;
+using VX_ACE_IT_CORE.MVC.Model.Plugins.GLOBAL_TYPES;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
@@ -76,6 +78,12 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
 
                 var gameUpdatable = new OffsetLoader<GameVxAce>(Debug, ProcessMethods, this).Updatable;
                 AddUpdatable(gameUpdatable);
+
+
+                Thread.Sleep(1000);
+                Updatable<Player> pl = new Updatable<Player>(playerUpdatable.Type);
+                Debug.AddMessage<object>(new Message<object>(pl.ToString(), MessageTypeEnum.Event));
+
             });
 
             InitUpdatablesAction = action;

@@ -11,9 +11,12 @@ using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
 using VX_ACE_IT_CORE.MVC.Model.GameWindow;
 using VX_ACE_IT_CORE.MVC.Model.Keyboard;
+using VX_ACE_IT_CORE.MVC.Model.Offsets;
 using VX_ACE_IT_CORE.MVC.Model.Overlay;
 using VX_ACE_IT_CORE.MVC.Model.Plugins;
+using VX_ACE_IT_CORE.MVC.Model.Plugins.GLOBAL_TYPES;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE;
+using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
 using VX_ACE_IT_CORE.MVC._Common;
 using PluginBase = VX_ACE_IT_CORE.MVC.Model.Plugins.PluginBase;
 
