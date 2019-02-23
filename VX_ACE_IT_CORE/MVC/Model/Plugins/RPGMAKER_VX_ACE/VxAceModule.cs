@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
+using System.Dynamic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Windows.Navigation;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
@@ -73,19 +78,30 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                 //}, this);
 
 
-                var playerUpdatable = new OffsetLoader<Player>(Debug, ProcessMethods, this).Updatable;
+                var playerUpdatable = new OffsetLoader<ExpandoObject>(Debug, ProcessMethods, this, 33, "Player", new List<string>()
+                {
+                    "Id",
+                    "Gold",
+                    "Hp",
+                    "Mana",
+                    "PosX",
+                    "PosY",
+                    "Name",
+                    "Items",
+                    "Variables"
+                }).Updatable;
                 AddUpdatable(playerUpdatable);
 
-                var gameUpdatable = new OffsetLoader<GameVxAce>(Debug, ProcessMethods, this).Updatable;
+                var gameUpdatable = new OffsetLoader<Player>(Debug, ProcessMethods, this).Updatable;
                 AddUpdatable(gameUpdatable);
-
-
+                
                 Thread.Sleep(1000);
-                Updatable<Player> pl = new Updatable<Player>(playerUpdatable.Type);
-                Debug.AddMessage<object>(new Message<object>(pl.ToString(), MessageTypeEnum.Event));
+                //Updatable<Player> pl = new Updatable<dynamic>(playerUpdatable.Type);
+               // Debug.AddMessage<object>(new Message<object>(pl.ToString(), MessageTypeEnum.Event));
 
             });
 
+            
             InitUpdatablesAction = action;
         }
 

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -11,6 +13,7 @@ using System.Windows.Forms;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
+using VX_ACE_IT_CORE.MVC.Model.Plugins.GLOBAL_TYPES;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Plugins
@@ -18,6 +21,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
     public class UpdatableType<T> : BaseAsync<object>
     {
         public T Type;
+        public Updatable<T> Updatable;
         /// <summary>
         /// This is not in type because: 
         /// <para> 1) You will have to declare it every time. </para>
@@ -26,44 +30,72 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
         /// <para> (int,..) Bottom range (Not included) | (..,int) Upper range (Included) </para>
         /// </summary>
         public Dictionary<string, (int, int)> ToleranceDict = new Dictionary<string, (int, int)>();
-        public readonly Dictionary<FieldInfo, List<List<IntPtr>>> Offsets = new Dictionary<FieldInfo, List<List<IntPtr>>>();
+        public readonly Dictionary<object, List<List<IntPtr>>> Offsets = new Dictionary<object, List<List<IntPtr>>>();
         private readonly ProcessMethods _processMethods;
 
-        public UpdatableType(BaseDebug debug, ProcessMethods processMethods, T type, Dictionary<string, List<List<IntPtr>>> offsets, PluginBase module = null)
+        public UpdatableType(BaseDebug debug, ProcessMethods processMethods, T type, Dictionary<string, List<List<IntPtr>>> offsets, PluginBase module = null, IEnumerable<string> props = null)
             : base(debug, processMethods._gameProcess)
         {
             this.Type = type;
             this._processMethods = processMethods;
-            Init(offsets);
+            Init(offsets, props);
             if (module != null) BeginUpdatePrimitives(module);
 
         }
 
-        void Init(Dictionary<string, List<List<IntPtr>>> offsets)
+        void Init(Dictionary<string, List<List<IntPtr>>> offsets, IEnumerable<string> props)
         {
             var tsk = new Task<List<object>>(() =>
             {
-                foreach (FieldInfo fieldInfo in Type.GetType().GetFields())
-                {
-                    // Create plugin config, where will be desearialised class.
-                    // idea -> could create entire from serializable document ? Let´s say player could be defined in txt.
-                    // But that would require javascript dynamic access to object.... welp :-D
-                    string fiName = offsets.Keys.FirstOrDefault((key => key == fieldInfo.Name));
-                    if (fieldInfo.Name == fiName)
+                //todo: Impl. non-defined types field detection.
+                if (!(this.Type as ExpandoObject != null))
+                    foreach (FieldInfo fieldInfo in Type.GetType().GetFields())
                     {
-                        offsets.TryGetValue(fieldInfo.Name, out var intPtrs);
-                        if (intPtrs != null)
-                            Offsets.Add(fieldInfo, intPtrs);
+                        // Create plugin config, where will be desearialised class.
+                        // idea -> could create entire from serializable document ? Let´s say player could be defined in txt.
+                        // But that would require javascript dynamic access to object.... welp :-D
+                        string fiName = offsets.Keys.FirstOrDefault((key => key == fieldInfo.Name));
+                        if (fieldInfo.Name == fiName)
+                        {
+                            offsets.TryGetValue(fieldInfo.Name, out var intPtrs);
+                            if (intPtrs != null)
+                                Offsets.Add(fieldInfo, intPtrs);
+                        }
+                        // Something like this. Just create usable config file for this.
+                        this.Updatable = new Updatable<T>(this.Type);
                     }
-                    // Something like this. Just create usable config file for this.
+                else
+                {
+                    this.Updatable = new Updatable<T>(props);
+                    this.Type = Updatable.GetUpdatable;
+                    var dictionary = (IDictionary<string, object>)(this.Type);
+                    foreach (var dKey in dictionary.Keys)
+                    {
+                        // Create plugin config, where will be desearialised class.
+                        // idea -> could create entire from serializable document ? Let´s say player could be defined in txt.
+                        // But that would require javascript dynamic access to object.... welp :-D
+                        string fiName = offsets.Keys.FirstOrDefault((key => key == dKey));
+                        if (dKey == fiName)
+                        {
+                            offsets.TryGetValue(dKey, out var intPtrs);
+                            if (intPtrs != null)
+                                Offsets.Add(dKey, intPtrs); //todo: welp, ima fcked. Need better dict.
+                        }
+                    }
                 }
 
                 if (this.Type.GetType().GetFields().Length < Offsets.Count)
                 {
                     // Create OnOffsetUpdate delegate.
+                    if(props == null)
                     Debug.AddMessage<object>(new Message<object>(
                         "[" + GetType().Name + "][" + this.Type.GetType().Name + "] more offsets loaded than there are fields in the class. Check your config for additional lines.",
                         MessageTypeEnum.Indifferent));
+                    else
+                    if(props?.Count() < Offsets.Count)
+                        Debug.AddMessage<object>(new Message<object>(
+                            "[" + GetType().Name + "][" + this.Type.GetType().Name + "(UserDefined)] more offsets loaded than there are fields in the class. Check your config for additional lines.",
+                            MessageTypeEnum.Indifferent));
                 }
                 else
                 if (this.Type.GetType().GetFields().Count() == offsets.Count())
@@ -85,11 +117,13 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                     Debug.AddMessage<object>(new Message<object>(
                         "[" + GetType().Name + "][" + this.Type.GetType().Name + "] none offsets were loaded.",
                         MessageTypeEnum.Error));
-                }
-                if (offsets.Count > 0)
+                }// else if (offsets.Count > 0) WriteLoadedOffsets();
+                if (offsets.Any() && ((Type as ExpandoObject) != null))
                 {
                     //Is called in offsetLoader, because of tolerances.
-                    //WriteLoadedOffsets();
+                    Debug.AddMessage<object>(new Message<object>(
+                        "[User Defined][" + this.Type.GetType().Name + "] type was loaded. (No way to check if type is valid/useful)",
+                        MessageTypeEnum.Indifferent));
                 }
                 return null;
             });
@@ -108,7 +142,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                     int readAddressVal = 0; // Not used I know, but can be moved to field ? or even as Type Field pair
                     foreach (var keyPar in Offsets)
                     {
-                        if (ToleranceDict.TryGetValue(keyPar.Key.Name, out var toleranceTuple))
+                        string keyName = (keyPar.Key as FieldInfo) == null ? keyPar.Key.ToString() : ((FieldInfo) keyPar.Key).Name;
+                        if (ToleranceDict.TryGetValue(keyName, out var toleranceTuple))
                             foreach (var offSetList in keyPar.Value)
                             {
                                 readAddressVal = _processMethods.Rpm<int>(pluginBase.ModuleBaseAddr, offSetList, out var valAdress);
@@ -135,16 +170,31 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                         {
                             // Theory is, that by the count of multipointer read values, most occured one will be the searched one.
                             var grouped = occurences.ToLookup(x => x);
-
+                            
                             if (grouped.Any())
                             {
                                 //Get Type, get fields by keypars, set them and debug.
-                                Type.GetType().GetField(keyPar.Key.Name).SetValue(Type,
-                                new KeyValuePair<IntPtr, Numeric<int>>(
-                                    grouped.FirstOrDefault().Key.Key,
-                                    new Numeric<int>(grouped.FirstOrDefault().Key.Value)));
-                                Thread.Sleep(Precision);
-                                Debug.AddMessage<object>(new Message<object>(Type.ToString()));
+                                var dict = Type as IDictionary<string, object>;
+                                if (dict == null)
+                                {
+                                    Type.GetType().GetField(keyName).SetValue(Type,
+                                        new KeyValuePair<IntPtr, Numeric<int>>(
+                                            grouped.FirstOrDefault().Key.Key,
+                                            new Numeric<int>(grouped.FirstOrDefault().Key.Value)));
+                                    Thread.Sleep(Precision);
+                                    Debug.AddMessage<object>(new Message<object>(Type.ToString()));
+                                }
+                                else
+                                {
+                                    lock (dict)
+                                    {
+                                        dict[keyName] = new KeyValuePair<IntPtr, Numeric<int>>(
+                                            grouped.FirstOrDefault().Key.Key,
+                                            new Numeric<int>(grouped.FirstOrDefault().Key.Value));
+                                        Thread.Sleep(Precision);
+                                        Debug.AddMessage<object>(new Message<object>(Updatable.ToString()));
+                                    }        
+                                }
                             }
                         }
                         occurences.Clear();
@@ -159,9 +209,24 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
             _processMethods.Wpm(((dynamic)Type.GetType().GetField(fieldName).GetValue(Type)).Key, t);
         }
 
-        public string ToDebugString(IDictionary<FieldInfo, List<List<IntPtr>>> dictionary)
+        public string ToDebugString(IDictionary<object, List<List<IntPtr>>> dictionary)
         {
-            return "{" + string.Join(",", dictionary.Select(kv => "\n" + kv.Key.Name + "=" + WriteInpPtrList(kv.Value, kv.Key.Name)).ToArray()) + "\n}<" + Type.GetType().Name + ">";
+            //todo: fix this and replace.
+            //var key = dictionary.Keys.FirstOrDefault() as FieldInfo;
+            //return "{" + string.Join(",", dictionary.Select(kv => "\n" +
+            //                                                      (key == null ? kv.Key.ToString() : ((FieldInfo)kv.Key).Name)) + "=" +
+            //                                                      WriteInpPtrList(kv.Value, ((kv.Key as FieldInfo) == null ? kv.Key.ToString() : ((FieldInfo)kv.Key).Name)).ToArray()) + "\n}<" +
+            //       Type.GetType().Name + ">");
+            var key = dictionary.Keys.First() as FieldInfo;
+            if (key != null)
+                return "{" + string.Join(",", dictionary.Select(kv => "\n" +
+                                                                      ((FieldInfo)kv.Key).Name + "=" +
+                                                                      WriteInpPtrList(kv.Value, ((FieldInfo)kv.Key).Name)).ToArray()) + "\n}<" +
+                       Type.GetType().Name + ">";
+            return "{" + string.Join(",", dictionary.Select(kv => "\n" +
+                                                                  kv.Key + "=" +
+                                                                  WriteInpPtrList(kv.Value, kv.Key.ToString())).ToArray()) + "\n}<" +
+                   Type.GetType().Name + ">";
         }
 
         public void WriteLoadedOffsets()
@@ -189,8 +254,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                 strList += "}";
             }
 
-            if(ToleranceDict.TryGetValue(name, out var value))
-            strList += "\nValTolerance:[" + value + "]}";
+            if (ToleranceDict.TryGetValue(name, out var value))
+                strList += "\nValTolerance:[" + value + "]}";
             else
                 strList += "\nValTolerance:[Not yet loaded/null]}";
             return strList;
