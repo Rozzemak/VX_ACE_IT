@@ -185,57 +185,124 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                         Debug.AddMessage<object>(new Message<object>(
                             "Offsets loading from file as undefined generic type" +
                             "\nPath of UpdatableType file: \n[" + objName + "]=>[" + path + "]"));
-                        foreach (var field in props)
+                        if (props.Count() != 0)
                         {
-                            var adresses = new List<IntPtr>();
-                            // offsetlist.InsertRange(0, reader.Element(field.Name)?.Attributes() .Cast<IntPtr>() ?? throw new InvalidOperationException());
-                            if (!(reader.Root.Element(field) is null) && reader.Root.Element(field).HasAttributes)
+                            foreach (var field in props)
                             {
-                                offsetlists.Clear();
-                                foreach (XAttribute list in reader.Root.Element(field)?.Attributes())
+                                var adresses = new List<IntPtr>();
+                                // offsetlist.InsertRange(0, reader.Element(field.Name)?.Attributes() .Cast<IntPtr>() ?? throw new InvalidOperationException());
+                                if (!(reader.Root.Element(field) is null) && reader.Root.Element(field).HasAttributes)
                                 {
-                                    if (list.Name.LocalName.ToLower().Contains("tolerance") && list.Value != " ")
+                                    offsetlists.Clear();
+                                    foreach (XAttribute list in reader.Root.Element(field)?.Attributes())
                                     {
-                                        if (tuples.ContainsKey(field)) tuples.Remove(field);
-                                        tuples.Add(field,
-                                            ((int) new System.ComponentModel.Int32Converter().ConvertFromString(list.Value.Split(' ').FirstOrDefault()),
-                                                ((int) new System.ComponentModel.Int32Converter().ConvertFromString(
-                                                    list.Value.Split(' ').LastOrDefault()))));
-                                    }
-
-                                    foreach (var offset in list.Value.Split(' '))
-                                    {
-                                        if (!list.Name.LocalName.ToLower().Contains("tolerance") && offset != " ")
+                                        if (list.Name.LocalName.ToLower().Contains("tolerance") && list.Value != " ")
                                         {
-                                            if (offset.Length > 0)
+                                            if (tuples.ContainsKey(field)) tuples.Remove(field);
+                                            tuples.Add(field,
+                                                ((int)new System.ComponentModel.Int32Converter().ConvertFromString(list.Value.Split(' ').FirstOrDefault()),
+                                                    ((int)new System.ComponentModel.Int32Converter().ConvertFromString(
+                                                        list.Value.Split(' ').LastOrDefault()))));
+                                        }
+
+                                        foreach (var offset in list.Value.Split(' '))
+                                        {
+                                            if (!list.Name.LocalName.ToLower().Contains("tolerance") && offset != " ")
                                             {
-                                                val = new IntPtr(
-                                                    (uint) new System.ComponentModel.UInt32Converter()
-                                                        .ConvertFromString(offset));
+                                                if (offset.Length > 0)
+                                                {
+                                                    val = new IntPtr(
+                                                        (uint)new System.ComponentModel.UInt32Converter()
+                                                            .ConvertFromString(offset));
+                                                }
+
+                                                // Reading of 0x0 value -> adress in memory is actually required functionality.
+                                                if (val != IntPtr.Zero || offset == "0x0")
+                                                    adresses.Add(val);
                                             }
 
-                                            // Reading of 0x0 value -> adress in memory is actually required functionality.
-                                            if (val != IntPtr.Zero || offset == "0x0")
-                                                adresses.Add(val);
+                                            val = IntPtr.Zero;
                                         }
 
-                                        val = IntPtr.Zero;
-                                    }
+                                        if (adresses.Count != 0)
+                                        {
+                                            if (offsets.ContainsKey(field))
+                                            {
+                                                offsets.TryGetValue(field, out var list2);
+                                                list2?.Add(new List<IntPtr>(adresses));
+                                            }
+                                            else
+                                            {
+                                                offsetlists.Add(new List<IntPtr>(adresses));
+                                                offsets.Add(field, new List<List<IntPtr>>(offsetlists));
+                                            }
+                                        }
 
-                                    if (adresses.Count != 0)
+                                        adresses.Clear();
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            foreach (var attr in reader.Root.Elements())
+                            {
+                                var field = attr.Name.LocalName;
+                                var adresses = new List<IntPtr>();
+                                // offsetlist.InsertRange(0, reader.Element(field.Name)?.Attributes() .Cast<IntPtr>() ?? throw new InvalidOperationException());
+                                if (!(reader.Root.Element(field) is null) &&
+                                    reader.Root.Element(field).HasAttributes)
+                                {
+                                    offsetlists.Clear();
+                                    foreach (XAttribute list in reader.Root.Element(field)?.Attributes())
                                     {
-                                        if (offsets.ContainsKey(field))
+                                        if (list.Name.LocalName.ToLower().Contains("tolerance") &&
+                                            list.Value != " ")
                                         {
-                                            offsets.TryGetValue(field, out var list2);
-                                            list2?.Add(new List<IntPtr>(adresses));
+                                            if (tuples.ContainsKey(field)) tuples.Remove(field);
+                                            tuples.Add(field,
+                                                ((int)new System.ComponentModel.Int32Converter().ConvertFromString(list.Value.Split(' ').FirstOrDefault()),
+                                                    ((int)new System.ComponentModel.Int32Converter()
+                                                        .ConvertFromString(
+                                                            list.Value.Split(' ').LastOrDefault()))));
                                         }
-                                        else
+
+                                        foreach (var offset in list.Value.Split(' '))
                                         {
-                                            offsetlists.Add(new List<IntPtr>(adresses));
-                                            offsets.Add(field, new List<List<IntPtr>>(offsetlists));
+                                            if (!list.Name.LocalName.ToLower().Contains("tolerance") &&
+                                                offset != " ")
+                                            {
+                                                if (offset.Length > 0)
+                                                {
+                                                    val = new IntPtr(
+                                                        (uint)new System.ComponentModel.UInt32Converter()
+                                                            .ConvertFromString(offset));
+                                                }
+
+                                                // Reading of 0x0 value -> adress in memory is actually required functionality.
+                                                if (val != IntPtr.Zero || offset == "0x0")
+                                                    adresses.Add(val);
+                                            }
+
+                                            val = IntPtr.Zero;
                                         }
+
+                                        if (adresses.Count != 0)
+                                        {
+                                            if (offsets.ContainsKey(field))
+                                            {
+                                                offsets.TryGetValue(field, out var list2);
+                                                list2?.Add(new List<IntPtr>(adresses));
+                                            }
+                                            else
+                                            {
+                                                offsetlists.Add(new List<IntPtr>(adresses));
+                                                offsets.Add(field, new List<List<IntPtr>>(offsetlists));
+                                            }
+                                        }
+
+                                        adresses.Clear();
                                     }
-                                    adresses.Clear();
                                 }
                             }
                         }

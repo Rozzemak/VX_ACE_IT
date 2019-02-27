@@ -48,7 +48,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
             var tsk = new Task<List<object>>(() =>
             {
                 //todo: Impl. non-defined types field detection.
-                if (!(this.Type as ExpandoObject != null))
+                if (!(this.Type is ExpandoObject))
                     foreach (FieldInfo fieldInfo in Type.GetType().GetFields())
                     {
                         // Create plugin config, where will be desearialised class.
@@ -66,6 +66,10 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                     }
                 else
                 {
+                    if (!props.Any())
+                    {
+                        props = (offsets as IDictionary<string, List<List<IntPtr>>>)?.Keys;
+                    }
                     this.Updatable = new Updatable<T>(props);
                     this.Type = Updatable.GetUpdatable;
                     var dictionary = (IDictionary<string, object>)(this.Type);
@@ -87,7 +91,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                 if (this.Type.GetType().GetFields().Length < Offsets.Count)
                 {
                     // Create OnOffsetUpdate delegate.
-                    if(props == null)
+                    if(!props.Any())
                     Debug.AddMessage<object>(new Message<object>(
                         "[" + GetType().Name + "][" + this.Type.GetType().Name + "] more offsets loaded than there are fields in the class. Check your config for additional lines.",
                         MessageTypeEnum.Indifferent));
@@ -217,8 +221,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
             //                                                      (key == null ? kv.Key.ToString() : ((FieldInfo)kv.Key).Name)) + "=" +
             //                                                      WriteInpPtrList(kv.Value, ((kv.Key as FieldInfo) == null ? kv.Key.ToString() : ((FieldInfo)kv.Key).Name)).ToArray()) + "\n}<" +
             //       Type.GetType().Name + ">");
-            var key = dictionary.Keys.First() as FieldInfo;
-            if (key != null)
+            if (dictionary.Keys.FirstOrDefault() is FieldInfo)
                 return "{" + string.Join(",", dictionary.Select(kv => "\n" +
                                                                       ((FieldInfo)kv.Key).Name + "=" +
                                                                       WriteInpPtrList(kv.Value, ((FieldInfo)kv.Key).Name)).ToArray()) + "\n}<" +

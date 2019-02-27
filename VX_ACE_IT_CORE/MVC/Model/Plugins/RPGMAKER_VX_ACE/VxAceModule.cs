@@ -22,7 +22,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
     public class VxAceModule : PluginBase
     {
         public VxAceModule(BaseDebug baseDebug, ProcessMethods processMethods, Action updatables, int precision = 17)
-        : base(baseDebug, processMethods, "RGSS301.dll", updatables, precision)
+        : base(baseDebug, processMethods, "RGSS300.dll", updatables, precision)
         {
             if (updatables is null)
             {
@@ -80,20 +80,11 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
 
                 var playerUpdatable = new OffsetLoader<ExpandoObject>(Debug, ProcessMethods, this, 33, "Player", new List<string>()
                 {
-                    "Id",
-                    "Gold",
-                    "Hp",
-                    "Mana",
-                    "PosX",
-                    "PosY",
-                    "Name",
-                    "Items",
-                    "Variables"
                 }).Updatable;
-                AddUpdatable(playerUpdatable);
+                //AddUpdatable(playerUpdatable);
 
-                var gameUpdatable = new OffsetLoader<Player>(Debug, ProcessMethods, this).Updatable;
-                AddUpdatable(gameUpdatable);
+                //var gameUpdatable = new OffsetLoader<Player>(Debug, ProcessMethods, this).Updatable;
+                //AddUpdatable(gameUpdatable);
                 
                 Thread.Sleep(1000);
                 //Updatable<Player> pl = new Updatable<dynamic>(playerUpdatable.Type);
