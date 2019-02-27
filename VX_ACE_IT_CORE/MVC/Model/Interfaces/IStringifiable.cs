@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -32,12 +33,13 @@ namespace VX_ACE_IT_CORE.MVC.Model.Interfaces
                 var dict = (IDictionary<string, object>)obj;
                 object objTemp = new ExpandoObject();
                 Interlocked.Exchange(ref objTemp, obj);
-                s += "{";
+                s += "{\n";
                 foreach (var entry in ((ExpandoObject)objTemp))
                 {
-                    if (entry.Key == "ToString") continue;
-                    var val = dict.GetType().GetField(entry.Key)?.GetValue(obj);
-                    s += "[" + entry + ":" + StringifyObj(val) + "]\n";
+                    if (entry.Key.ToLower().Contains("ToString".ToLower())) continue;
+                    //var val = dict.GetType().GetField(entry.Key)?.GetValue(obj);
+                    s += "[" + StringifyObj(entry) +"]\n";
+                    //s += "(Val:" + ((entry)).Value + ")}";
                 }
                 s += "}";
             }
@@ -47,7 +49,18 @@ namespace VX_ACE_IT_CORE.MVC.Model.Interfaces
         public static string StringifyObj(dynamic obj)
         {
             var s = "";
-            s += "{(Adr:" + (obj)?.Key.ToString("X") + ")";
+            try
+            {
+                if(obj?.Key is string)
+                    s += "{("+ obj?.Key + ":0x" + ((obj)?.Value)?.Key?.ToString("X") + ")";
+                else
+                    s += "{(0x" + obj?.Key.ToString("X") + ")";
+            }
+            catch (Exception e)
+            {
+            }
+            if (s == "")
+                s += "{("+ ((obj)?.Key)?.ToString() +")";
             s += "(Val:" + (obj)?.Value?.ToString() + ")}";
             return s;
         }

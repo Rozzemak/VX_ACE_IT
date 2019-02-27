@@ -83,8 +83,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                 }).Updatable;
                 //AddUpdatable(playerUpdatable);
 
-                //var gameUpdatable = new OffsetLoader<Player>(Debug, ProcessMethods, this).Updatable;
-                //AddUpdatable(gameUpdatable);
+                var gameUpdatable = new OffsetLoader<Player>(Debug, ProcessMethods, this).Updatable;
+                AddUpdatable(gameUpdatable);
                 
                 Thread.Sleep(1000);
                 //Updatable<Player> pl = new Updatable<dynamic>(playerUpdatable.Type);

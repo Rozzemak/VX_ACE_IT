@@ -67,12 +67,12 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.GLOBAL_TYPES
                 foreach (var field in props)
                     dictionary.Add(field, new object());
             }
-            dictionary.Add("ToString", new Func<string>(() => (_expando as object).Stringify()));
+            dictionary.Add("ToString1", new Func<string>(() => (_expando as object).Stringify()));
         }
 
         public override string ToString()
         {
-            return _expando.ToString();
+            return _expando.ToString1();
         }
     }
 }

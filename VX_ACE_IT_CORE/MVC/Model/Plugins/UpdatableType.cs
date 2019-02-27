@@ -66,6 +66,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                     }
                 else
                 {
+                    // Will use names of loaded offsets if none field names are specified.
+                    // You will not see any null offsets.
                     if (!props.Any())
                     {
                         props = (offsets as IDictionary<string, List<List<IntPtr>>>)?.Keys;
