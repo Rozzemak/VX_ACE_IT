@@ -350,7 +350,7 @@ namespace VX_ACE_IT_UI
                 Width = 50,
                 Fill = Brushes.BurlyWood,
                 Focusable = true,
-                ToolTip = "hey, im over"
+                ToolTip = "hey, im over",                
             };
             App.Current.Dispatcher.Invoke(() =>
             {
@@ -362,6 +362,7 @@ namespace VX_ACE_IT_UI
                     transform.X += 5;
                     uiElement.RenderTransform = transform;
                 }; 
+                //Mouse events will not work in current impl.
                 shape.MouseEnter += (o, args) =>
                     _debug.AddMessage<object>(new Message<object>(shape.GetType() + " was clicked."));
                 _core._controller.GameOverlayPlugin.Overlay.AddShape(shape);

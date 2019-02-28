@@ -70,6 +70,7 @@ namespace VX_ACE_IT_CORE.MVC.Controller
         private void InitOverlay()
         {
            GameOverlayPlugin = new GameOverlayPlugin();
+            GameOverlayPlugin.StartDemo(this.GameProcess.Process, Dispatcher.CurrentDispatcher);
         }
 
         public void SetWindowPosFromConfig()
