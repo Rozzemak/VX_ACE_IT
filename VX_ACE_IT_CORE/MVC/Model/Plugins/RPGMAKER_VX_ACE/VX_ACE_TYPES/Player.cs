@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using VX_ACE_IT_CORE.MVC.Model.Interfaces;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES
 {
     public class Player
     {
-        public KeyValuePair<IntPtr,Numeric<int>> Id, Hp, Mana;
+        public KeyValuePair<IntPtr,Numeric<int>> Id, Gold, Hp, Mana, PosX, PosY;
         public KeyValuePair<IntPtr,string> Name;
         public KeyValuePair<IntPtr,List<Item>> Items;
         public KeyValuePair<IntPtr,List<Variable<int>>> Variables;
@@ -18,26 +19,9 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES
 
         public override string ToString()
         {
-            string s = "\n----[" + GetType().Name +"]----\n";
-            s += "{";
-            foreach (var field in GetType().GetFields())
-            {
-                 var val = this.GetType().GetField(field.Name).GetValue(this);
-                s += "[" + field.Name + ":" + Stringify(val) + "]\n";
-            }
-
-            s += "}";
-
-            return s;
+            return this.Stringify();
         }
 
-        public string Stringify(dynamic obj)
-        {
-            string s = "";
-
-            s += "{(Adr:" + (obj).Key.ToString("X")+")";
-            s += "(Val:" + (obj).Value?.ToString() + ")}";
-            return s;
-        }
+       
     }
 }

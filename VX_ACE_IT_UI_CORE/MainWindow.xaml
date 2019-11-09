@@ -17,7 +17,7 @@
         Background="{DynamicResource MaterialDesignPaper}"  
         FontFamily="{DynamicResource MaterialDesignFont}">
     <Grid>
-        <StackPanel Name="WelcomeStackPanel" VerticalAlignment="Center" ZIndex="1">
+        <StackPanel Name="WelcomeStackPanel" VerticalAlignment="Center" ZIndex="1" Visibility="Visible">
             <DockPanel HorizontalAlignment="Center">
                 <materialDesign:Card VerticalAlignment="Center" Name="WelcomeSettingsCard" Padding="32" Width="300">
                     <StackPanel Name="WelcomeCardStackPanel">
@@ -76,8 +76,9 @@
                 <Button Name="RPMButton" Content="RPM" HorizontalAlignment="Left" Margin="38,26,0,0" VerticalAlignment="Top" Width="75" Click="RPMButton_OnClick"/>
                 <TextBox Name="AdressTextBox"></TextBox>
             </DockPanel>
+            <Button Name="Test" Content="Test" HorizontalAlignment="Left" Margin="38,26,0,0" VerticalAlignment="Top" Width="75" Click="Test_Click"/>
         </StackPanel>
-        <Grid Name="DimmGrid" ZIndex="-1" Background="{DynamicResource MaterialDesignDarkBackground}" ></Grid>
+        <Grid Name="DimmGrid" ZIndex="-1" Background="{DynamicResource MaterialDesignDarkBackground}" Visibility="Visible" ></Grid>
         <Grid ZIndex="1000" Name="ExitGrid">
             <DockPanel VerticalAlignment="Top" HorizontalAlignment="Right">
                 <Button Name="ExitMinimizeButton" Background="Transparent" BorderBrush="Transparent" FontSize="25" Click="ExitMinimizeButton_Click">-</Button>

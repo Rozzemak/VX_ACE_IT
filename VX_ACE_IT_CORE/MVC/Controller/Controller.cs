@@ -3,18 +3,28 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Threading;
+using Overlay.NET.Common;
+using Process.NET.Windows.Keyboard;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
 using VX_ACE_IT_CORE.MVC.Model.GameWindow;
+using VX_ACE_IT_CORE.MVC.Model.Keyboard;
+using VX_ACE_IT_CORE.MVC.Model.Offsets;
+using VX_ACE_IT_CORE.MVC.Model.Overlay;
 using VX_ACE_IT_CORE.MVC.Model.Plugins;
+using VX_ACE_IT_CORE.MVC.Model.Plugins.GLOBAL_TYPES;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE;
+using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
 using VX_ACE_IT_CORE.MVC._Common;
+using PluginBase = VX_ACE_IT_CORE.MVC.Model.Plugins.PluginBase;
 
 namespace VX_ACE_IT_CORE.MVC.Controller
 {
     public class Controller
     {
-        private readonly BaseDebug debug;
+        private readonly BaseDebug _debug;
         private readonly GameWindow _gameWindow;
         private readonly Config _config;
 
@@ -23,9 +33,13 @@ namespace VX_ACE_IT_CORE.MVC.Controller
 
         public PluginService PluginService;
 
+        public GameOverlayPlugin GameOverlayPlugin;
+
+        public KeyboardListener Keyboard;
+
         public Controller(BaseDebug debug, Config config)
         {
-            this.debug = debug;
+            this._debug = debug;
             this._config = config;
             GameProcess = new GameProcess(debug);
             _gameWindow = new GameWindow(debug, config, GameProcess);
@@ -38,6 +52,8 @@ namespace VX_ACE_IT_CORE.MVC.Controller
         {
             ProcessMethods = new ProcessMethods(GameProcess);
             InitPlugins();
+            InitOverlay();
+            Keyboard = new KeyboardListener(_debug);
         }
 
         private void GameProcessOnOnNoProcessFound(object sender, EventArgs eventArgs)
@@ -48,7 +64,13 @@ namespace VX_ACE_IT_CORE.MVC.Controller
 
         private void InitPlugins()
         {
-            this.PluginService = new PluginService(this.debug, this.GameProcess, new List<PluginBase>(){ new VxAceModule(this.debug, ProcessMethods, null)}, 33);
+            this.PluginService = new PluginService(this._debug, this.GameProcess, new List<PluginBase>() { new VxAceModule(this._debug, ProcessMethods, null) }, 33);
+        }
+
+        private void InitOverlay()
+        {
+           GameOverlayPlugin = new GameOverlayPlugin();
+            GameOverlayPlugin.StartDemo(this.GameProcess.Process, Dispatcher.CurrentDispatcher);
         }
 
         public void SetWindowPosFromConfig()
@@ -68,7 +90,6 @@ namespace VX_ACE_IT_CORE.MVC.Controller
                     break;
             }
         }
-
 
     }
 }

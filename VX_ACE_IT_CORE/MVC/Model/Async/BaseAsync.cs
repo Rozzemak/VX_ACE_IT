@@ -41,9 +41,9 @@ namespace VX_ACE_IT_CORE.MVC.Model.Async
                     Thread.Sleep(Precision);
                     for (int i = 0; i < Works.Count; i++)
                     {
-                        if (Works[i].Status == TaskStatus.Created)
+                        if (Works[i]?.Status == TaskStatus.Created)
                             Works[i].Start();
-                        else if (Works[i].Status == TaskStatus.Faulted)
+                        else if (Works[i]?.Status == TaskStatus.Faulted)
                         {
                             var ex = Works[i].Exception;
                             var faulted = Works[i].IsFaulted;

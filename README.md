@@ -19,5 +19,5 @@
 **Setup:**
 
 	Use it on a some vx_ace game,
-	then copy&paste https://pastebin.com/fy4qQSEN
+	then copy&paste https://pastebin.com/UG8M7aH4
 	in player xml located /Offsets/VxAceModule/Player.xml

@@ -32,9 +32,9 @@ namespace VX_ACE_IT_CORE.Debug
                     Thread.Sleep(10);
                     for (int i = 0; i < _tasks.Count; i++)
                     {
-                        if (_tasks[i].Status == TaskStatus.Created)
-                            _tasks[i].Start();
-                        else if (_tasks[i].Status == TaskStatus.Faulted)
+                        if (_tasks[i]?.Status == TaskStatus.Created)
+                            _tasks[i]?.Start();
+                        else if (_tasks[i]?.Status == TaskStatus.Faulted)
                         {
                             var ex = _tasks[i].Exception;
                             var faulted = _tasks[i].IsFaulted;
@@ -52,7 +52,7 @@ namespace VX_ACE_IT_CORE.Debug
                                 }
                             };
                         }
-                        if (i < _tasks.Count && _tasks[i].Status == TaskStatus.RanToCompletion)
+                        if (i < _tasks.Count && _tasks[i]?.Status == TaskStatus.RanToCompletion)
                         {
                             _tasks.RemoveAt(i);
                         }

@@ -1,13 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
+using System.Dynamic;
+using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Windows.Navigation;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
 using VX_ACE_IT_CORE.MVC.Model.Offsets;
+using VX_ACE_IT_CORE.MVC.Model.Plugins.GLOBAL_TYPES;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
@@ -15,7 +22,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
     public class VxAceModule : PluginBase
     {
         public VxAceModule(BaseDebug baseDebug, ProcessMethods processMethods, Action updatables, int precision = 17)
-        : base(baseDebug, processMethods, "RGSS301.dll", updatables, precision)
+        : base(baseDebug, processMethods, "RGSS300.dll", updatables, precision)
         {
             if (updatables is null)
             {
@@ -70,13 +77,22 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                 //    },
                 //}, this);
 
+                //UndefinedType
+                var playerUpdatable = new OffsetLoader<ExpandoObject>(Debug, ProcessMethods, this, 33, "Player", new List<string>()
+                {
+                }).Updatable;
+                AddUpdatable(playerUpdatable);
 
-                var playerUpdatable = new OffsetLoader<Player>(Debug, ProcessMethods, this).Updatable;
-                playerUpdatable.BeginUpdatePrimitives(this);
-                //playerUpdatable.BeginUpdatePrimitives(this);
-                this.UpdatableTypes.Add(playerUpdatable);
+                var gameUpdatable = new OffsetLoader<Player>(Debug, ProcessMethods, this).Updatable;
+                AddUpdatable(gameUpdatable);
+                
+                Thread.Sleep(1000);
+                //Updatable<Player> pl = new Updatable<dynamic>(playerUpdatable.Type);
+               // Debug.AddMessage<object>(new Message<object>(pl.ToString(), MessageTypeEnum.Event));
+
             });
 
+            
             InitUpdatablesAction = action;
         }
 

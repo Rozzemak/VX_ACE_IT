@@ -48,6 +48,12 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
             InitUpdatablesAction?.Invoke();
         }
 
+        public void AddUpdatable<T>(UpdatableType<T> updatableType, bool update = true)
+        {
+            UpdatableTypes.Add(updatableType);
+            if(update) updatableType.BeginUpdatePrimitives(this);
+        }
+
         public void UpdateBaseAddress()
         {
             if (ProcessMethods._gameProcess.GetModuleAddresByName(ModuleName) is null) return;
