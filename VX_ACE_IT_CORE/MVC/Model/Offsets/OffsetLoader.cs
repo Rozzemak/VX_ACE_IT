@@ -42,27 +42,31 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
             if (objName == "")
             {
                 Type = (T)Activator.CreateInstance(typeof(T));
-                if (!(Type.Equals(default(object)))) // At least something defined was created.
+                if (Type.Equals(default)) return;
+                Updatable = new UpdatableType<T>(debug, processMethods, Type);
+                InitOffsetsAsync().ContinueWith(async task =>
                 {
-                    Updatable = new UpdatableType<T>(debug, processMethods, Type, InitOffsets(out var tolerances));
-                    Updatable.ToleranceDict = tolerances;
+                    Updatable.Init(await task.ConfigureAwait(false), props, plugin);
                     Updatable.WriteLoadedOffsets();
-                }
+                });
             }
             else
             {
                 Type = (T)Activator.CreateInstance(typeof(T));
                 // Dynamically create type of undefined one. ... Use Loader with (dynamic/object??)   
-                Updatable = new UpdatableType<T>(debug, processMethods, Type, InitOffsets(objName, props, out var tolerances), plugin, props);
-                Updatable.ToleranceDict = tolerances;
-                Updatable.WriteLoadedOffsets();
+                Updatable = new UpdatableType<T>(debug, processMethods, Type);
+                InitOffsetsAsync(objName, props).ContinueWith(async task =>
+                {
+                    Updatable.Init(await task.ConfigureAwait(false), props, plugin);
+                    Updatable.WriteLoadedOffsets();
+                });
+
             }
         }
 
-        private Dictionary<string, List<List<IntPtr>>> InitOffsets(out Dictionary<string, (int, int)> tolerances)
+        private async Task<Dictionary<string, List<List<IntPtr>>>> InitOffsetsAsync()
         {
-            tolerances = new Dictionary<string, (int, int)>();
-            var tuples = tolerances;
+            var tolerances = new Dictionary<string, (int, int)>();
             var task = new Task<List<object>>(() =>
             {
                 var path = Directory.GetCurrentDirectory()
@@ -70,8 +74,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                            + _plugin.GetType().Name.Substring(0, _plugin.GetType().Name.Length)
                            + "/" + typeof(T).Name + ".xml";
                 var xmlSerializer = new XmlSerializer(typeof(T));
-                Dictionary<string, List<List<IntPtr>>> offsets = new Dictionary<string, List<List<IntPtr>>>();
-                IntPtr val = IntPtr.Zero;
+                var offsets = new Dictionary<string, List<List<IntPtr>>>();
+                var val = IntPtr.Zero;
                 if (!File.Exists(path))
                 {
                     Directory.CreateDirectory(Directory.GetCurrentDirectory()
@@ -92,52 +96,51 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                                                  "\nPath of UpdatableType file: \n[" + Type.GetType().Name + "]=>[" + path + "]"));
                     foreach (var field in typeof(T).GetFields())
                     {
-                        var adresses = new List<IntPtr>();
+                        var addresses = new List<IntPtr>();
                         // offsetlist.InsertRange(0, reader.Element(field.Name)?.Attributes() .Cast<IntPtr>() ?? throw new InvalidOperationException());
-                        if (!(reader.Root.Element(field.Name) is null) && reader.Root.Element(field.Name).HasAttributes)
+                        if (reader.Root?.Element(field.Name) is null ||
+                            (!(bool) reader?.Root?.Element(field?.Name)?.HasAttributes)) continue;
+                        offsetlists.Clear();
+                        foreach (var list in reader?.Root?.Element(field?.Name)?.Attributes())
                         {
-                            offsetlists.Clear();
-                            foreach (var list in reader.Root.Element(field.Name)?.Attributes())
+                            if (list.Name.LocalName.ToLower().Contains("tolerance") && list.Value != " ")
                             {
-                                if (list.Name.LocalName.ToLower().Contains("tolerance") && list.Value != " ")
-                                {
-                                    if (tuples.ContainsKey(field.Name)) tuples.Remove(field.Name);
-                                    tuples.Add(field.Name, ((int)new Int32Converter().
-                                            ConvertFromString(list.Value.Split(' ').FirstOrDefault()),
-                                        ((int)new Int32Converter().
-                                            ConvertFromString(list.Value.Split(' ').LastOrDefault()))));
-                                }
-                                foreach (var offset in list.Value.Split(' '))
-                                {
-                                    if (!list.Name.LocalName.ToLower().Contains("tolerance") && offset != " ")
-                                    {
-                                        if (offset.Length > 0)
-                                        {
-                                            val = new IntPtr(
-                                                (uint)new UInt32Converter()
-                                                    .ConvertFromString(offset));
-                                        }
-                                        // Reading of 0x0 value -> adress in memory is actually required functionality.
-                                        if (val != IntPtr.Zero || offset == "0x0")
-                                            adresses.Add(val);
-                                    }
-                                    val = IntPtr.Zero;
-                                }
-                                if (adresses.Count != 0)
-                                {
-                                    if (offsets.ContainsKey(field.Name))
-                                    {
-                                        offsets.TryGetValue(field.Name, out var list2);
-                                        list2?.Add(new List<IntPtr>(adresses));
-                                    }
-                                    else
-                                    {
-                                        offsetlists.Add(new List<IntPtr>(adresses));
-                                        offsets.Add(field.Name, new List<List<IntPtr>>(offsetlists));
-                                    }
-                                }
-                                adresses.Clear();
+                                if (tolerances.ContainsKey(field.Name)) tolerances.Remove(field.Name);
+                                tolerances.Add(field.Name, ((int)new Int32Converter().
+                                        ConvertFromString(list.Value.Split(' ').FirstOrDefault()),
+                                    ((int)new Int32Converter().
+                                        ConvertFromString(list.Value.Split(' ').LastOrDefault()))));
                             }
+                            foreach (var offset in list.Value.Split(' '))
+                            {
+                                if (!list.Name.LocalName.ToLower().Contains("tolerance") && offset != " ")
+                                {
+                                    if (offset.Length > 0)
+                                    {
+                                        val = new IntPtr(
+                                            (uint)new UInt32Converter()
+                                                .ConvertFromString(offset));
+                                    }
+                                    // Reading of 0x0 value -> adress in memory is actually required functionality.
+                                    if (val != IntPtr.Zero || offset == "0x0")
+                                        addresses.Add(val);
+                                }
+                                val = IntPtr.Zero;
+                            }
+                            if (addresses.Count != 0)
+                            {
+                                if (offsets.ContainsKey(field.Name))
+                                {
+                                    offsets.TryGetValue(field.Name, out var list2);
+                                    list2?.Add(new List<IntPtr>(addresses));
+                                }
+                                else
+                                {
+                                    offsetlists.Add(new List<IntPtr>(addresses));
+                                    offsets.Add(field.Name, new List<List<IntPtr>>(offsetlists));
+                                }
+                            }
+                            addresses.Clear();
                         }
                     }
                 }
@@ -146,16 +149,16 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
 
             AddWork(task);
 
-            task.Wait(-1);
-            tolerances = tuples;
+            await task.ConfigureAwait(false);
+
+            Updatable.ToleranceDict = tolerances;
             // ReSharper disable once AsyncConverter.AsyncWait
             return task.Result.FirstOrDefault() as Dictionary<string, List<List<IntPtr>>>;
         }
 
-        private Dictionary<string, List<List<IntPtr>>> InitOffsets(string objName, IEnumerable<string> props, out Dictionary<string, (int, int)> tolerances)
+        private async Task<Dictionary<string, List<List<IntPtr>>>> InitOffsetsAsync(string objName, IEnumerable<string> props)
         {
-            tolerances = new Dictionary<string, (int, int)>();
-            Dictionary<string, (int, int)> tuples = tolerances;
+            var tolerances = new Dictionary<string, (int, int)>();
             var task = new Task<List<object>>(() =>
             {
                 var path = Directory.GetCurrentDirectory()
@@ -200,8 +203,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                     {
                                         if (list.Name.LocalName.ToLower().Contains("tolerance") && list.Value != " ")
                                         {
-                                            if (tuples.ContainsKey(field)) tuples.Remove(field);
-                                            tuples.Add(field,
+                                            if (tolerances.ContainsKey(field)) tolerances.Remove(field);
+                                            tolerances.Add(field,
                                                 ((int)new Int32Converter().ConvertFromString(list.Value.Split(' ').FirstOrDefault()),
                                                     ((int)new Int32Converter().ConvertFromString(
                                                         list.Value.Split(' ').LastOrDefault()))));
@@ -256,13 +259,13 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                     reader.Root.Element(field).HasAttributes)
                                 {
                                     offsetlists.Clear();
-                                    foreach (XAttribute list in reader.Root.Element(field)?.Attributes())
+                                    foreach (var list in reader.Root.Element(field)?.Attributes())
                                     {
                                         if (list.Name.LocalName.ToLower().Contains("tolerance") &&
                                             list.Value != " ")
                                         {
-                                            if (tuples.ContainsKey(field)) tuples.Remove(field);
-                                            tuples.Add(field,
+                                            if (tolerances.ContainsKey(field)) tolerances.Remove(field);
+                                            tolerances.Add(field,
                                                 ((int)new Int32Converter().ConvertFromString(list.Value.Split(' ').FirstOrDefault()),
                                                     ((int)new Int32Converter()
                                                         .ConvertFromString(
@@ -319,10 +322,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
 
             AddWork(task);
 
-            
-            task.Wait(-1);
-            tolerances = tuples;
-            return task.Result.First() as Dictionary<string, List<List<IntPtr>>>;
+            return (await  task.ConfigureAwait(false))?.FirstOrDefault() as Dictionary<string, List<List<IntPtr>>>;
         }
 
 

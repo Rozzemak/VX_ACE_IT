@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,47 +12,54 @@ namespace VX_ACE_IT_CORE.Debug
 {
     public class BaseDebug
     {
-        public Thread DebugThread;
+        private readonly Thread _debugThread;
         private ConsoleSettings _consoleSettings = new ConsoleSettings(Encoding.UTF8);
 
         protected delegate void Worker(MessageTypeEnum messageTypeOnly = MessageTypeEnum.DefaultWriteAll);
         protected Worker Worker1;
 
-
-        private readonly List<Message<object>> _messages = new List<Message<object>>();
+        private readonly ConcurrentQueue<Message<object>> _messages = new ConcurrentQueue<Message<object>>();
         private readonly List<Task> _tasks = new List<Task>();
 
         private bool _isSafeToDelete;
 
+        public EventHandler OnMessageAdded;
+
         public BaseDebug(bool threadStart = true)
         {
-            DebugThread = new Thread( async () =>
+            _debugThread = new Thread( async () =>
             {
                 while (true)
                 {
                     Thread.Sleep(10);
-                    for (int i = 0; i < _tasks.Count; i++)
+                    for (var i = 0; i < _tasks.Count; i++)
                     {
-                        if (_tasks[i]?.Status == TaskStatus.Created)
-                            _tasks[i]?.Start();
-                        else if (_tasks[i]?.Status == TaskStatus.Faulted)
+                        switch (_tasks[i]?.Status)
                         {
-                            var ex = _tasks[i].Exception;
-                            var faulted = _tasks[i].IsFaulted;
-                            if (faulted && ex != null)
+                            case TaskStatus.Created:
+                                _tasks[i]?.Start();
+                                break;
+                            case TaskStatus.Faulted:
                             {
-                                Task task = _tasks[i];
-                                _tasks.RemoveAt(i);
-                                try
+                                var ex = _tasks[i].Exception;
+                                var faulted = _tasks[i].IsFaulted;
+                                if (faulted && ex != null)
                                 {
-                                    await ResultHandler(task).ConfigureAwait(false);
-                                }
-                                catch (AggregateException e)
-                                {
-                                    HandleUnadledExceptions(e);
-                                }
-                            };
+                                    var task = _tasks[i];
+                                    _tasks.RemoveAt(i);
+                                    try
+                                    {
+                                        await ResultHandlerAsync(task).ConfigureAwait(false);
+                                    }
+                                    catch (AggregateException e)
+                                    {
+                                        HandleUnadledExceptions(e);
+                                    }
+                                };
+                                break;
+                            }
                         }
+
                         if (i < _tasks.Count && _tasks[i]?.Status == TaskStatus.RanToCompletion)
                         {
                             _tasks.RemoveAt(i);
@@ -65,29 +73,30 @@ namespace VX_ACE_IT_CORE.Debug
                 }
             });
             if (threadStart)
-                DebugThread.Start();
+                _debugThread.Start();
             //  Worker1 += Work_2;
 
         }
 
         public void AddMessage<T>(Message<object> msg)
         {
-            Task task = new Task(() =>
+            var task = new Task(() =>
             {
-                _messages.Add(msg);
+                _messages.Enqueue(msg);
+                OnMessageAdded?.Invoke(msg, EventArgs.Empty);
                 PrintAllPendingMessages();
             });
             _tasks.Add(task);
         }
 
-
         public void AddMessages<T>(List<Message<object>> msgs)
         {
-            Task task = new Task(() =>
+            var task = new Task(() =>
             {
                 foreach (var msg in msgs)
                 {
-                    _messages.Add(msg);
+                    _messages.Enqueue(msg);
+                    OnMessageAdded?.Invoke(msg, EventArgs.Empty);
                 }
                 PrintAllPendingMessages();
             });
@@ -96,10 +105,11 @@ namespace VX_ACE_IT_CORE.Debug
 
         public async Task<bool> AddMessage_Async<T>(Message<object> msg)
         {
-            Task task = new Task(() =>
+            var task = new Task(() =>
             {
-                _messages.Add(msg);
-                Dispatcher.FromThread(DebugThread)?.Invoke(() => PrintAllPendingMsg());
+                _messages.Enqueue(msg);
+                OnMessageAdded?.Invoke(msg, EventArgs.Empty);
+                Dispatcher.FromThread(_debugThread)?.Invoke(() => PrintAllPendingMsg());
                 while (_messages.Count > 0)
                 {
                     Thread.Sleep(5);
@@ -107,12 +117,8 @@ namespace VX_ACE_IT_CORE.Debug
             });
             task.Start();
             _tasks.Add(task);
-            await ResultHandler(task);
-            if (task.Status != TaskStatus.RanToCompletion)
-            {
-                return false;
-            }
-            return true;
+            await ResultHandlerAsync(task).ConfigureAwait(false);
+            return task.Status == TaskStatus.RanToCompletion;
         }
 
         private void PrintAllPendingMsg(MessageTypeEnum messageTypeOnly = MessageTypeEnum.DefaultWriteAll)
@@ -123,55 +129,55 @@ namespace VX_ACE_IT_CORE.Debug
                 if (messageTypeOnly == MessageTypeEnum.DefaultWriteAll)
                 {
 
-                    for (int i = 0; i < _messages.Count; i++)
+                    for (var i = 0; i < _messages.Count; i++)
                     {
-                        if (!_isSafeToDelete  && !(_messages.ElementAt(i) is null) && !_messages[i].shown) 
+                        var msg = _messages.ElementAt(i);
+                        if (_isSafeToDelete || msg is null || msg.shown) continue;
+                        // Console.ResetColor();
+                        switch (msg.MessageType)
                         {
-                            // Console.ResetColor();
-                            switch (_messages[i].MessageType)
-                            {
-                                case MessageTypeEnum.Standard:
-                                    break;
-                                case MessageTypeEnum.Warning:
-                                    Console.BackgroundColor = ConsoleColor.Red;
-                                    break;
-                                case MessageTypeEnum.Error:
-                                    Console.ForegroundColor = ConsoleColor.Red;
-                                    break;
-                                case MessageTypeEnum.Exception:
-                                    Console.BackgroundColor = ConsoleColor.Red;
-                                    Console.ForegroundColor = ConsoleColor.Black;
-                                    break;
-                                case MessageTypeEnum.Indifferent:
-                                    Console.BackgroundColor = ConsoleColor.Yellow;
-                                    Console.ForegroundColor = ConsoleColor.Black;
-                                    break;
-                                case MessageTypeEnum.Event:
-                                    Console.BackgroundColor = ConsoleColor.DarkRed;
-                                    Console.ForegroundColor = ConsoleColor.Green;
-                                    break;
-                                case MessageTypeEnum.Rest:
-                                    break;
-                                case MessageTypeEnum.HttpClient:
-                                    Console.ForegroundColor = ConsoleColor.Green;
-                                    break;
-                                case MessageTypeEnum.DefaultWriteAll:
-                                    break;
-                            }
-                            Console.WriteLine("[" + Enum.GetName(typeof(MessageTypeEnum), _messages[i].MessageType) +
-                                              "]" + _messages[i].MessageContent);
-                            Console.ResetColor();
-                            _messages[i].shown = true;
+                            case MessageTypeEnum.Standard:
+                                break;
+                            case MessageTypeEnum.Warning:
+                                Console.BackgroundColor = ConsoleColor.Red;
+                                break;
+                            case MessageTypeEnum.Error:
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                break;
+                            case MessageTypeEnum.Exception:
+                                Console.BackgroundColor = ConsoleColor.Red;
+                                Console.ForegroundColor = ConsoleColor.Black;
+                                break;
+                            case MessageTypeEnum.Indifferent:
+                                Console.BackgroundColor = ConsoleColor.Yellow;
+                                Console.ForegroundColor = ConsoleColor.Black;
+                                break;
+                            case MessageTypeEnum.Event:
+                                Console.BackgroundColor = ConsoleColor.DarkRed;
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                break;
+                            case MessageTypeEnum.Rest:
+                                break;
+                            case MessageTypeEnum.HttpClient:
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                break;
+                            case MessageTypeEnum.DefaultWriteAll:
+                                break;
                         }
+                        Console.WriteLine("[" + Enum.GetName(typeof(MessageTypeEnum), msg.MessageType) +
+                                          "]" + msg.MessageContent);
+                        Console.ResetColor();
+                        msg.shown = true;
                     }
                 }
                 else
                 {
-                    for (int i = 0; i < _messages.Count; i++)
+                    for (var i = 0; i < _messages.Count; i++)
                     {
-                        if (_messages[i].MessageType == messageTypeOnly)
-                            Console.WriteLine("[" + Enum.GetName(typeof(MessageTypeEnum), _messages[i].MessageType) + "]" + _messages[i].MessageContent);
-                        _messages[i].shown = true;
+                        var msg = _messages.ElementAt(i);
+                        if (msg.MessageType == messageTypeOnly)
+                            Console.WriteLine("[" + Enum.GetName(typeof(MessageTypeEnum), msg.MessageType) + "]" + msg.MessageContent);
+                        msg.shown = true;
                     }
                 }
                 _isSafeToDelete = true;
@@ -203,11 +209,11 @@ namespace VX_ACE_IT_CORE.Debug
             }
         }
 
-        protected async Task ResultHandler(Task task)
+        protected async Task ResultHandlerAsync(Task task)
         {
             try
             {
-                await task;
+                await task.ConfigureAwait(false);
             }
             catch (AggregateException ae)
             {
@@ -234,14 +240,11 @@ namespace VX_ACE_IT_CORE.Debug
         /// <param name="ae"></param>
         private void HandleUnadledExceptions(AggregateException ae)
         {
-            string msg = "DebugClass Exception: \n";
+            var msg = "DebugClass Exception: \n";
             msg += ae.Message + "\n";
             if (ae.InnerException != null)
                 msg += "Worker delegate propably not init. try => Worker1 += PrintAllPendingMsg " + "\n";
-            foreach (var innerException in ae.InnerExceptions)
-            {
-                msg += innerException.Message + "\n";
-            }
+            msg = ae.InnerExceptions.Aggregate(msg, (current, innerException) => current + (innerException.Message + "\n"));
             msg += "Quick fix: Run this program with '--nodebug' param, => NOT IMPL YET :(" + "\n";
             Console.WriteLine(msg);
             throw new Exception(msg);

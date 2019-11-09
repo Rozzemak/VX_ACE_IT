@@ -11,7 +11,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Interfaces
     {
         public static string Stringify(this object obj)
         {
-            string s = "\n----[" + obj.GetType().Name + "]----\n";
+            var s = "\n----[" + obj.GetType().Name + "]----\n";
             if (!(obj is ExpandoObject))
             {
                 lock (obj)
@@ -34,13 +34,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Interfaces
                 object objTemp = new ExpandoObject();
                 Interlocked.Exchange(ref objTemp, obj);
                 s += "{\n";
-                foreach (var entry in ((ExpandoObject)objTemp))
-                {
-                    if (entry.Key.ToLower().Contains("ToString".ToLower())) continue;
-                    //var val = dict.GetType().GetField(entry.Key)?.GetValue(obj);
-                    s += "[" + StringifyObj(entry) +"]\n";
-                    //s += "(Val:" + ((entry)).Value + ")}";
-                }
+                s = ((ExpandoObject) objTemp).Where(entry => !entry.Key.ToLower().Contains("ToString".ToLower())).Aggregate(s, (current, entry) => current + ("[" + StringifyObj(entry) + "]\n"));
                 s += "}";
             }
             return s;
@@ -56,9 +50,11 @@ namespace VX_ACE_IT_CORE.MVC.Model.Interfaces
                 else
                     s += "{(0x" + obj?.Key.ToString("X") + ")";
             }
-            catch (Exception e)
+            catch
             {
+                // ignored
             }
+
             if (s == "")
                 s += "{("+ ((obj)?.Key)?.ToString() +")";
             s += "(Val:" + (obj)?.Value?.ToString() + ")}";

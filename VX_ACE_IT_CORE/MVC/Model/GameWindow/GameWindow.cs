@@ -176,7 +176,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
                     //inputs[vkInputs.IndexOf(vkey)].type = (int)INPUT_TYPE.INPUT_KEYBOARD;
                     //inputs[vkInputs.IndexOf(vkey)].ki.dwFlags = 0;
                     //inputs[vkInputs.IndexOf(vkey)].ki.wScan = (ushort)(vkey & 0xff);
-                    INPUT input = new INPUT
+                    var input = new INPUT
                     {
                         Type = 1
                     };
@@ -192,10 +192,10 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
                     inputs[vkInputs.IndexOf(vkey)] = input;
                 }
 
-                uint intReturn = SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
+                var intReturn = SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
                 if (intReturn == 0)
                 {
-                    string str = "";
+                    var str = "";
                     foreach (var input in vkInputs)
                     {
                         str += "[0x" + input.ToString("X") + "]";
@@ -205,7 +205,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
                 }
                 else
                 {
-                    string str = "";
+                    var str = "";
                     foreach (var input in vkInputs)
                     {
                         str += "[0x" + input.ToString("X") + "]";

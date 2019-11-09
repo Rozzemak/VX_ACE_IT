@@ -14,6 +14,7 @@ using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.GLOBAL_TYPES;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
+using Module = System.Reflection.Module;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Plugins
 {
@@ -42,18 +43,26 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
 
         }
 
-        void Init(Dictionary<string, List<List<IntPtr>>> offsets, IEnumerable<string> props)
+        public UpdatableType(BaseDebug debug, ProcessMethods processMethods, T type, PluginBase module = null, IEnumerable<string> props = null)
+            : base(debug, processMethods._gameProcess)
+        {
+            this.Type = type;
+            this._processMethods = processMethods;
+        }
+
+
+        private Task Init(Dictionary<string, List<List<IntPtr>>> offsets, IEnumerable<string> props)
         {
             var tsk = new Task<List<object>>(() =>
             {
                 //todo: Impl. non-defined types field detection.
                 if (!(this.Type is ExpandoObject))
-                    foreach (FieldInfo fieldInfo in Type.GetType().GetFields())
+                    foreach (var fieldInfo in Type.GetType().GetFields())
                     {
                         // Create plugin config, where will be desearialised class.
                         // idea -> could create entire from serializable document ? Let´s say player could be defined in txt.
                         // But that would require javascript dynamic access to object.... welp :-D
-                        string fiName = offsets.Keys.FirstOrDefault((key => key == fieldInfo.Name));
+                        var fiName = offsets.Keys.FirstOrDefault((key => key == fieldInfo.Name));
                         if (fieldInfo.Name == fiName)
                         {
                             offsets.TryGetValue(fieldInfo.Name, out var intPtrs);
@@ -79,7 +88,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                         // Create plugin config, where will be desearialised class.
                         // idea -> could create entire from serializable document ? Let´s say player could be defined in txt.
                         // But that would require javascript dynamic access to object.... welp :-D
-                        string fiName = offsets.Keys.FirstOrDefault((key => key == dKey));
+                        var fiName = offsets.Keys.FirstOrDefault((key => key == dKey));
                         if (dKey == fiName)
                         {
                             offsets.TryGetValue(dKey, out var intPtrs);
@@ -133,22 +142,31 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                 return null;
             });
             AddWork(tsk);
-            // ReSharper disable once AsyncConverter.AsyncWait
-            tsk.Wait(-1);
+            return tsk;
+
         }
+
+        public void Init(Dictionary<string, List<List<IntPtr>>> offsets, IEnumerable<string> props, PluginBase module)
+        {
+            Init(offsets, props);
+            if(!(module is null)) BeginUpdatePrimitives(module);
+        }
+
 
         public void BeginUpdatePrimitives(PluginBase pluginBase)
         {
             AddWork(new Task<List<object>>(() =>
             {
+                Thread.Sleep(this.Precision);
                 if (pluginBase.ModuleBaseAddr == IntPtr.Zero) Debug.AddMessage<object>(new Message<object>("Module address is not set. Engine values cannot be read.", MessageTypeEnum.Error));
                 var occurences = new List<KeyValuePair<IntPtr, int>>();
                 while (true)
                 {
-                    int readAddressVal = 0; // Not used I know, but can be moved to field ? or even as Type Field pair
+                    
+                    var readAddressVal = 0; // Not used I know, but can be moved to field ? or even as Type Field pair
                     foreach (var keyPar in Offsets)
                     {
-                        string keyName = (keyPar.Key as FieldInfo) == null ? keyPar.Key.ToString() : ((FieldInfo) keyPar.Key).Name;
+                        var keyName = (keyPar.Key as FieldInfo) == null ? keyPar.Key.ToString() : ((FieldInfo) keyPar.Key).Name;
                         if (ToleranceDict.TryGetValue(keyName, out var toleranceTuple))
                             foreach (var offSetList in keyPar.Value)
                             {

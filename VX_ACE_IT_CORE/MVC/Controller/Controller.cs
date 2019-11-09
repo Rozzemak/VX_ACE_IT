@@ -24,6 +24,7 @@ namespace VX_ACE_IT_CORE.MVC.Controller
         private readonly BaseDebug _debug;
         private readonly GameWindow _gameWindow;
         private readonly Config _config;
+        private readonly Model.Notifications.Notifications _notifications;
 
         public readonly GameProcess GameProcess;
         public ProcessMethods ProcessMethods;
@@ -37,10 +38,10 @@ namespace VX_ACE_IT_CORE.MVC.Controller
         public Controller(BaseDebug debug, Config config)
         {
             this._debug = debug;
+            this._notifications = new Model.Notifications.Notifications(debug);
             this._config = config;
             GameProcess = new GameProcess(debug);
             _gameWindow = new GameWindow(debug, config, GameProcess);
-
             GameProcess.OnNoProcessFound += GameProcessOnOnNoProcessFound;
             GameProcess.OnProcessFound += GameProcessOnOnProcessFound;
         }

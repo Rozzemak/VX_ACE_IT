@@ -48,7 +48,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.GLOBAL_TYPES
         /// </summary>
         /// <param name="type">Defined type</param>
         /// <param name="props">Props of expandoObject</param>
-        private void InitType<TPType>(TPType type = default (TPType), IEnumerable<dynamic> props = null)
+        private void InitType<TPType>(TPType type = default, IEnumerable<dynamic> props = null)
         {
             var dictionary = (IDictionary<string, object>)_expando;
             //foreach (var property in type.GetType().GetProperties())

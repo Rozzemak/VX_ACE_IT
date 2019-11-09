@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -15,7 +17,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Async
         protected GameProcess.GameProcess GameProcess;
         protected List<T> ServiceCollection = new List<T>();
         private Thread _workerThread;
-        protected List<Task<List<object>>> Works = new List<Task<List<object>>>();
+        protected readonly ConcurrentBag<Task<List<object>>> Works = new ConcurrentBag<Task<List<object>>>();
         protected int Precision;
 
         /// <summary>
@@ -34,38 +36,31 @@ namespace VX_ACE_IT_CORE.MVC.Model.Async
 
         protected void DoWork()
         {
-            _workerThread = new Thread(() =>
+            _workerThread = new Thread(async () =>
             {
                 while (true)
                 {
                     Thread.Sleep(Precision);
                     for (var i = 0; i < Works.Count; i++)
                     {
-                        if (Works[i]?.Status == TaskStatus.Created)
-                            Works[i].Start();
-                        else if (Works[i]?.Status == TaskStatus.Faulted)
+                        var work = Works.ElementAt(i);
+                        if (work?.Status == TaskStatus.Created)
+                            work.Start();
+                        else if (work?.Status == TaskStatus.Faulted)
                         {
-                            var ex = Works[i].Exception;
-                            var faulted = Works[i].IsFaulted;
+                            var ex = work.Exception;
+                            var faulted = work.IsFaulted;
                             if (faulted && ex != null)
                             {
-                                if (Works[i] as Task<List<T>> != null)
-                                {
-                                    Debug.AddMessage_Async<object>(new Message<object>("[" + this.GetType().Name + "] request faulted." + " |TaskID[" + Works[i].Id + "]"
-                                                                                              + " |TaskResult[" + (Works[i] as Task<List<T>>).Exception.InnerException.Message + "]", MessageTypeEnum.Error)).ConfigureAwait(false);
-                                }
-                                else
-                                {
-                                    Debug.AddMessage_Async<object>(new Message<object>("[" + this.GetType().Name + "]  request faulted." + " |TaskID[" + Works[i].Id + "]"
-                                                                                              + " |TaskResult[" + Works[i].Exception.Message + "]", MessageTypeEnum.Error)).ConfigureAwait(false);
-                                    Debug.AddMessage_Async<object>(new Message<object>(ex.Data, MessageTypeEnum.Exception)).ConfigureAwait(false);
-                                }
-                                Works.RemoveAt(i);
+                                await Debug.AddMessage_Async<object>(new Message<object>("[" + this.GetType().Name + "]  request faulted." + " |TaskID[" + work.Id + "]"
+                                                                                         + " |TaskResult[" + work?.Exception?.Message + "]", MessageTypeEnum.Error)).ConfigureAwait(false);
+                                await Debug.AddMessage_Async<object>(new Message<object>(ex.Data, MessageTypeEnum.Exception)).ConfigureAwait(false);
+                                Works.TryTake(out work);
                             };
                         }
-                        if (i < Works.Count && Works[i].Status == TaskStatus.RanToCompletion)
+                        if (i < Works.Count && work?.Status == TaskStatus.RanToCompletion)
                         {
-                            Works.RemoveAt(i);
+                            Works.TryTake(out work);
                         }
                     }
                 }
@@ -107,7 +102,9 @@ namespace VX_ACE_IT_CORE.MVC.Model.Async
         {
             try
             {
+                // ReSharper disable once AsyncConverter.AsyncWait
                 task.Wait(-1);
+                // ReSharper disable once AsyncConverter.AsyncWait
                 return task.Result;
             }
             catch (AggregateException ae)
@@ -128,5 +125,6 @@ namespace VX_ACE_IT_CORE.MVC.Model.Async
             return new List<T>() { default(T) };
         }
     }
+
 }
 

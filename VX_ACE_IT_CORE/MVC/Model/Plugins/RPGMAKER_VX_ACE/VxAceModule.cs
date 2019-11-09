@@ -19,7 +19,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
 {
     public class VxAceModule : PluginBase
     {
-        public VxAceModule(BaseDebug baseDebug, ProcessMethods processMethods, Action updatables, int precision = 17)
+        public VxAceModule(BaseDebug baseDebug, ProcessMethods processMethods, Action updatables, int precision = 33)
         : base(baseDebug, processMethods, "RGSS301.dll", updatables, precision)
         {
             if (updatables is null)
@@ -32,8 +32,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
         {
             var action = new Action(() =>
             {
-                List<List<IntPtr>> lists = new List<List<IntPtr>>();
-                for (int i = -10; i > 10; i++)
+                var lists = new List<List<IntPtr>>();
+                for (var i = -10; i > 10; i++)
                 {
                     lists.Add(new List<IntPtr>()
                     {

@@ -115,17 +115,17 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
                  .FirstOrDefault(module => module.ModuleName.ToLower().Equals(name.ToLower()));
         }
 
-        public bool IsProcessFetched()
+        private bool IsProcessFetched()
         {
             return _process != null;
         }
 
-        public List<Module> CollectModules(Process process)
+        private IEnumerable<Module> CollectModules(Process process)
         {
-            List<Module> collectedModules = new List<Module>();
+            var collectedModules = new List<Module>();
 
-            IntPtr[] modulePointers = new IntPtr[0];
-            int bytesNeeded = 0;
+            var modulePointers = new IntPtr[0];
+            var bytesNeeded = 0;
 
             // Determine number of modules
             if (!Native.EnumProcessModulesEx(process.Handle, modulePointers, 0, out bytesNeeded, (uint)Native.ModuleFilter.ListModulesAll))
@@ -133,23 +133,23 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
                 return collectedModules;
             }
 
-            int totalNumberofModules = bytesNeeded / IntPtr.Size;
+            var totalNumberofModules = bytesNeeded / IntPtr.Size;
             modulePointers = new IntPtr[totalNumberofModules];
 
             // Collect modules from the process
             if (Native.EnumProcessModulesEx(process.Handle, modulePointers, bytesNeeded, out bytesNeeded, (uint)Native.ModuleFilter.ListModulesAll))
             {
-                for (int index = 0; index < totalNumberofModules; index++)
+                for (var index = 0; index < totalNumberofModules; index++)
                 {
-                    StringBuilder moduleFilePath = new StringBuilder(1024);
+                    var moduleFilePath = new StringBuilder(1024);
                     Native.GetModuleFileNameEx(process.Handle, modulePointers[index], moduleFilePath, (uint)(moduleFilePath.Capacity));
 
-                    string moduleName = Path.GetFileName(moduleFilePath.ToString());
-                    Native.ModuleInformation moduleInformation = new Native.ModuleInformation();
+                    var moduleName = Path.GetFileName(moduleFilePath.ToString());
+                    var moduleInformation = new Native.ModuleInformation();
                     Native.GetModuleInformation(process.Handle, modulePointers[index], out moduleInformation, (uint)(IntPtr.Size * (modulePointers.Length)));
 
                     // Convert to a normalized module and add it to our list
-                    Module module = new Module(moduleName, moduleInformation.lpBaseOfDll, moduleInformation.SizeOfImage);
+                    var module = new Module(moduleName, moduleInformation.lpBaseOfDll, moduleInformation.SizeOfImage);
                     collectedModules.Add(module);
                 }
             }
@@ -158,7 +158,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
         }
     }
 
-    public class Native
+    public static class Native
     {
         [StructLayout(LayoutKind.Sequential)]
         public struct ModuleInformation

@@ -27,7 +27,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
         /// <returns></returns>
         public T Rpm<T>(IntPtr lpBaseAddress) where T : struct
         {
-            T[] buffer = new T[SizeOf<T>()];
+            var buffer = new T[SizeOf<T>()];
             ReadProcessMemory(_gameProcess.Process.Handle, lpBaseAddress, buffer, SizeOf<T>(), out var bytesread);
             return buffer.FirstOrDefault(); // [0] would be faster, but First() is safer. Eq of buffer[0] ?? default(T)
         }
@@ -35,14 +35,14 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
 
         public T Rpm<T>(IntPtr lpBaseAddress, List<IntPtr> offsets, out IntPtr valAdress) where T : struct
         {
-            IntPtr address = lpBaseAddress;
+            var address = lpBaseAddress;
 
             var lastOffset = offsets.LastOrDefault();
-            int index = offsets.Count - 1;
+            var index = offsets.Count - 1;
             if (index < 0)
                 index = 0;
 
-            for (int i = 0; i < index; i++)
+            for (var i = 0; i < index; i++)
             {
                 address = Rpm<IntPtr>(IntPtr.Add(address, (int)offsets[i]));
             }
@@ -64,7 +64,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
         /// <returns></returns>
         private int Rpm(IntPtr lpBaseAddress)
         {
-            byte[] buffer = new byte[(sizeof(int))];
+            var buffer = new byte[(sizeof(int))];
             ReadProcessMemory(_gameProcess.Process.Handle, lpBaseAddress, buffer, 4, out var bytesread);
             return BitConverter.ToInt32(buffer, 0);
         }
@@ -84,14 +84,14 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
 
         public bool Wpm<T>(IntPtr lpBaseAddress, T value, List<IntPtr> offsets) where T : struct
         {
-            IntPtr address = lpBaseAddress;
+            var address = lpBaseAddress;
 
             var lastOffset = offsets.LastOrDefault();
-            int index = offsets.Count - 1;
+            var index = offsets.Count - 1;
             if (index < 0)
                 index = 0;
 
-            for (int i = 0; i < index; i++)
+            for (var i = 0; i < index; i++)
             {
                 address = Rpm<IntPtr>(IntPtr.Add(address, (int)offsets[i]));
             }

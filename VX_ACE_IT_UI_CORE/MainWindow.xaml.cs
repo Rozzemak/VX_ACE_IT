@@ -151,12 +151,12 @@ namespace VX_ACE_IT_UI_CORE
             {
                 var text = (WelcomeResolution.SelectedItem as ComboBoxItem)?.Content.ToString() ??
                       WelcomeResolution.Text;
-                string re1 = "(\\d+)";  // Integer Number 1
-                string re2 = "(.)"; // Any Single Character 1
-                string re3 = "(\\d+)";  // Integer Number 2
+                var re1 = "(\\d+)";  // Integer Number 1
+                var re2 = "(.)"; // Any Single Character 1
+                var re3 = "(\\d+)";  // Integer Number 2
 
-                Regex r = new Regex(re1 + re2 + re3, RegexOptions.IgnoreCase | RegexOptions.Singleline);
-                Match m = r.Match(text);
+                var r = new Regex(re1 + re2 + re3, RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                var m = r.Match(text);
                 if (m.Success)
                 {
                     width = Math.Abs(int.Parse(m.Groups[1].Value));
@@ -235,7 +235,7 @@ namespace VX_ACE_IT_UI_CORE
                 while (false)
                 {
                     Thread.Sleep(22);
-                    int i = _core._controller.ProcessMethods.Rpm<int>(
+                    var i = _core._controller.ProcessMethods.Rpm<int>(
                         _core._controller.PluginService.Plugins.First().ModuleBaseAddr,
                         new List<IntPtr>() { new IntPtr(0x25A8B0), new IntPtr(0x30), new IntPtr(0x18), new IntPtr(0x20), new IntPtr(0x38) }, out var intPtr);
                     // <- rpgmaker_vx_ace 4:1.                                                                                                                                     
@@ -264,13 +264,13 @@ namespace VX_ACE_IT_UI_CORE
                 if (!(ProcessListListBox is null))
                 {
                     ProcessListListBox.Items.Clear();
-                    string processName = (sender as TextBox)?.Text ?? "";
+                    var processName = (sender as TextBox)?.Text ?? "";
 
                     foreach (var process in System.Diagnostics.Process.GetProcessesByName(processName))
                     {
                         if (!Is64BitProcess(process))
                         {
-                            UIElement element = CloneUIElement(_processListDefaultItem);
+                            var element = CloneUIElement(_processListDefaultItem);
                             ((ListBoxItem)element).Content = process.ProcessName + "_" + process.Id;
                             ((ListBoxItem)element).Visibility = Visibility.Visible;
                             ((ListBoxItem)element).Selected += ListBoxItem_OnSelected;
@@ -278,7 +278,7 @@ namespace VX_ACE_IT_UI_CORE
                         }
                         else
                         {
-                            UIElement element = CloneUIElement(_processListDefaultItem);
+                            var element = CloneUIElement(_processListDefaultItem);
                             ((ListBoxItem)element).Content = process.ProcessName + "-x64-" + process.Id;
                             ((ListBoxItem)element).Visibility = Visibility.Visible;
                             ((ListBoxItem)element).Selected += ListBoxItem_OnSelected;

@@ -32,7 +32,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
 
         public IntPtr ModuleBaseAddr;
 
-        public PluginBase(BaseDebug baseDebug, ProcessMethods processMethods, string moduleName, Action initUpdatablesAction, int precision = 17)
+        public PluginBase(BaseDebug baseDebug, ProcessMethods processMethods, string moduleName, Action initUpdatablesAction, int precision = 29)
         : base(baseDebug, processMethods._gameProcess, precision)
         {
             ProcessMethods = processMethods;
