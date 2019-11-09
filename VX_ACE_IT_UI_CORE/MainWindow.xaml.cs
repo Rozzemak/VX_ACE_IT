@@ -4,10 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Mime;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -24,24 +21,22 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml;
 using VX_ACE_IT_CORE;
-using VX_ACE_IT_CORE.MVC.Model.GameWindow;
-using VX_ACE_IT_CORE.MVC._Common;
 using VX_ACE_IT_CORE.Debug;
-using VX_ACE_IT_CORE.MVC.Model.Offsets;
+using VX_ACE_IT_CORE.MVC._Common;
+using VX_ACE_IT_CORE.MVC.Model.GameWindow;
 using VX_ACE_IT_CORE.MVC.Model.Plugins;
-using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
 
-namespace VX_ACE_IT_UI
+namespace VX_ACE_IT_UI_CORE
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Config config;
+        private Config _config;
         private Core _core;
-        private BaseDebug debug = new BaseDebug();
+        private readonly BaseDebug _debug = new BaseDebug();
         private UIElement _processListDefaultItem = new UIElement();
 
         public MainWindow()
@@ -52,13 +47,13 @@ namespace VX_ACE_IT_UI
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            config = new Config(debug);
+            _config = new Config(_debug);
 
             new Task(() =>
             {
-                if (!config.ConfigVariables.IsInitial)
+                if (!_config.ConfigVariables.IsInitial)
                 {
-                    App.Current.Dispatcher.Invoke(() =>
+                    Application.Current.Dispatcher?.Invoke(() =>
                     {
                         CloseAllDialogs();
                         RootLogicStackPanel.Visibility = Visibility.Visible;
@@ -67,7 +62,7 @@ namespace VX_ACE_IT_UI
                 }
             }); // .Start() if no config && is initial is chosen, but it´s annoying for debug, so implement later
 
-            _core = new Core(debug, config);
+            _core = new Core(_debug, _config);
             SubscribeEvents(_core);
 
             //AutoFetch is so annoying...
@@ -83,11 +78,11 @@ namespace VX_ACE_IT_UI
 
         private void InitUiFromConfig()
         {
-            config.LoadXmlConfig();
+            _config.LoadXmlConfig();
 
-            WelcomeProcessNameTextBox.Text = config.ConfigVariables.ProcessName;
-            WelcomeResolution.Text = config.ConfigVariables.Width + "x" + config.ConfigVariables.Height;
-            WelcomeBorder.IsChecked = config.ConfigVariables.IsWindowBorder;
+            WelcomeProcessNameTextBox.Text = _config.ConfigVariables.ProcessName;
+            WelcomeResolution.Text = _config.ConfigVariables.Width + "x" + _config.ConfigVariables.Height;
+            WelcomeBorder.IsChecked = _config.ConfigVariables.IsWindowBorder;
         }
 
         private void SubscribeEvents(Core core)
@@ -99,12 +94,12 @@ namespace VX_ACE_IT_UI
 
         private void GameProcess_OnKill(object sender, EventArgs e)
         {
-            Dispatcher.Invoke(() =>
+            Dispatcher?.Invoke(() =>
             {
                 ShowWelcomeScreen();
                 MainWindow_Loaded(this, null);
-                this.WelcomeProcessNameTextBox.Text = config.ConfigVariables.ProcessName.Split('_').Length > 1
-                    ? config.ConfigVariables.ProcessName.Split('_').First() : config.ConfigVariables.ProcessName;
+                this.WelcomeProcessNameTextBox.Text = _config.ConfigVariables.ProcessName.Split('_').Length > 1
+                    ? _config.ConfigVariables.ProcessName.Split('_').First() : _config.ConfigVariables.ProcessName;
             });
         }
 
@@ -121,7 +116,7 @@ namespace VX_ACE_IT_UI
 
         private void ShowWelcomeScreen()
         {
-            App.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher?.Invoke(() =>
             {
                 RootLogicStackPanel.Visibility = Visibility.Collapsed;
                 DimmGrid.Visibility = Visibility.Visible;
@@ -132,7 +127,7 @@ namespace VX_ACE_IT_UI
         private void InjectButton_Click(object sender, RoutedEventArgs e)
         {
             _core._controller.SetWindowPosFromConfig();
-            _core._controller.SetWindowStyle(config.ConfigVariables.IsWindowBorder ? WindowStyles.NoBorder : WindowStyles.Border);
+            _core._controller.SetWindowStyle(_config.ConfigVariables.IsWindowBorder ? WindowStyles.NoBorder : WindowStyles.Border);
         }
 
         private void CloseAllDialogs()
@@ -175,7 +170,7 @@ namespace VX_ACE_IT_UI
             }
             if (width != 0 && height != 0)
             {
-                config.ConfigVariables = new ConfigVariables()
+                _config.ConfigVariables = new ConfigVariables()
                 {
                     Width = width,
                     Height = height,
@@ -183,8 +178,8 @@ namespace VX_ACE_IT_UI
                     IsWindowBorder = WelcomeBorder.IsChecked.Value,
                     ProcessName = WelcomeProcessNameTextBox.Text
                 };
-                config.ReplaceXmlConfig();
-                _core._controller.GameProcess.FetchProcess(config.ConfigVariables.ProcessName);
+                _config.ReplaceXmlConfig();
+                _core._controller.GameProcess.FetchProcess(_config.ConfigVariables.ProcessName);
             }
             else
             {
@@ -231,7 +226,7 @@ namespace VX_ACE_IT_UI
             //    "AdressValue: " + _core._controller.ProcessMethods.Rpm<int>(new IntPtr(Convert.ToUInt32(AdressTextBox.Text, 16))) + ""
             //    ));
             //int address = Convert.ToInt32(AdressTextBox.Text,16);
-            this.debug.AddMessage<object>(new Message<object>((_core._controller.PluginService.Plugins.First().UpdatableTypes.First() as UpdatableType<Player>).Type.ToString()));   
+            this._debug.AddMessage<object>(new Message<object>((_core._controller.PluginService.Plugins.First().UpdatableTypes.First() as UpdatableType<Player>).Type.ToString()));
             (_core._controller.PluginService.Plugins.First().UpdatableTypes.First() as UpdatableType<Player>)?.SetValue("Hp", new Numeric<int>(460, true).EngineValue);
             new Task(() =>
             {
@@ -241,11 +236,11 @@ namespace VX_ACE_IT_UI
                     Thread.Sleep(22);
                     int i = _core._controller.ProcessMethods.Rpm<int>(
                         _core._controller.PluginService.Plugins.First().ModuleBaseAddr,
-                        new List<IntPtr>(){new IntPtr(0x25A8B0), new IntPtr(0x30), new IntPtr(0x18), new IntPtr(0x20), new IntPtr(0x38)}, out var intPtr);
+                        new List<IntPtr>() { new IntPtr(0x25A8B0), new IntPtr(0x30), new IntPtr(0x18), new IntPtr(0x20), new IntPtr(0x38) }, out var intPtr);
                     // <- rpgmaker_vx_ace 4:1.                                                                                                                                     
                     //  debug.AddMessage<object>(new Message<object>(                                                                               
                     //      "AdressValue: engine[" + new Numeric<int>(i).EngineValue + "] actual[" + new Numeric<int>(i).ActualValue + "]"
-                    debug.AddMessage<object>(new Message<object>(i+"bs" + _core._controller.PluginService.Plugins.First().ModuleBaseAddr));                                                                                 
+                    _debug.AddMessage<object>(new Message<object>(i + "bs" + _core._controller.PluginService.Plugins.First().ModuleBaseAddr));
                     //  ));
                     // if (i != 0) _core._controller.ProcessMethods.Wpm<int>(
                     //      _core._controller.VxAceModule.RgssBase, new Numeric<int>(250, true).EngineValue

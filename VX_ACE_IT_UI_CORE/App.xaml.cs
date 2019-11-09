@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace VX_ACE_IT_UI
+namespace VX_ACE_IT_UI_CORE
 {
     /// <summary>
     /// Interaction logic for App.xaml

@@ -1,7 +1,7 @@
-﻿<Application x:Class="VX_ACE_IT_UI.App"
+﻿<Application x:Class="VX_ACE_IT_UI_CORE.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:VX_ACE_IT_UI"
+             xmlns:local="clr-namespace:VX_ACE_IT_UI_CORE"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>

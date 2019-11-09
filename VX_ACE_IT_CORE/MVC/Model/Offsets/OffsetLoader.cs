@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 using VX_ACE_IT_CORE.Debug;
@@ -84,9 +82,9 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                 if (list.Name.LocalName.ToLower().Contains("tolerance") && list.Value != " ")
                                 {
                                     if (tuples.ContainsKey(field.Name)) tuples.Remove(field.Name);
-                                    tuples.Add(field.Name, ((int)new System.ComponentModel.Int32Converter().
+                                    tuples.Add(field.Name, ((int)new Int32Converter().
                                             ConvertFromString(list.Value.Split(' ').FirstOrDefault()),
-                                        ((int)new System.ComponentModel.Int32Converter().
+                                        ((int)new Int32Converter().
                                             ConvertFromString(list.Value.Split(' ').LastOrDefault()))));
                                 }
                                 foreach (var offset in list.Value.Split(' '))
@@ -96,7 +94,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                         if (offset.Length > 0)
                                         {
                                             val = new IntPtr(
-                                                (uint) new System.ComponentModel.UInt32Converter()
+                                                (uint) new UInt32Converter()
                                                     .ConvertFromString(offset));
                                         }
 
@@ -126,11 +124,12 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                 return new List<object>() { offsets };
             });
 
-            AddWork(task);
+            AddWork(Task.FromResult(task));
 
-            task.Wait(-1);
+            var rslt = Task.Run(() => task);
             tolerances = tuples;
-            return task.Result.First() as Dictionary<string, List<List<IntPtr>>>;
+            // ReSharper disable once AsyncConverter.AsyncWait
+            return rslt.Result.FirstOrDefault() as Dictionary<string, List<List<IntPtr>>>;
         }
 
 

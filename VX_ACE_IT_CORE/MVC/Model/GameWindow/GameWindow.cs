@@ -97,40 +97,40 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
 
         public void SetWindowFromConfig()
         {
-            AddWork(new Task<List<object>>(() =>
+            AddWork(new Task<Task<List<object>>>(() =>
             {
                 OnIconicRestore();
                 ShowWindowAsync(GameProcess.Process.MainWindowHandle, 5);
                 SetWindowPos(GameProcess.Process.MainWindowHandle, new IntPtr(-2), 0, 0, _config.ConfigVariables.Width, _config.ConfigVariables.Height, 0);
                 SetForegroundWindow(GameProcess.Process.MainWindowHandle);
-                return null;
+                return Task.FromResult<List<object>>(null);
             }));
 
         }
 
         public void SetWindowStyle(int? style = null)
         {
-            AddWork(new Task<List<object>>(() =>
+            AddWork(new Task<Task<List<object>>>(() =>
             {
                 OnIconicRestore();
-                IntPtr hwnd = GameProcess.Process.MainWindowHandle;
+                var hwnd = GameProcess.Process.MainWindowHandle;
                 ShowWindowAsync(hwnd, 5);
                 SetWindowLong(hwnd, GwlStyle, GetWindowLong(hwnd, style ?? -16) & ~WsCaption);
                 SetForegroundWindow(hwnd);
-                return null;
+                return Task.FromResult<List<object>>(null);
             }));
         }
 
 
         public void SetWindowStyleBorder(int? style = null)
         {
-            AddWork(new Task<List<object>>(() =>
+            AddWork(new Task<Task<List<object>>>(() =>
             {
-                IntPtr hwnd = GameProcess.Process.MainWindowHandle;
+                var hwnd = GameProcess.Process.MainWindowHandle;
                 ShowWindowAsync(hwnd, 5);
                 SetWindowLong(hwnd, GwlStyle, GetWindowLong(hwnd, style ?? -16) | WsCaption);
                 SetForegroundWindow(hwnd);
-                return null;
+                return Task.FromResult<List<object>>(null);
             }));
         }
 
@@ -166,10 +166,10 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
 
         public void SimulateKeyPress(List<int> vkInputs, bool release = false)
         {
-            AddWork(new Task<List<object>>((() =>
+            AddWork(new Task<Task<List<object>>>((() =>
             {
                 SwitchWindow(GameProcess.Process.MainWindowHandle);
-                INPUT[] inputs = new INPUT[vkInputs.Count];
+                var inputs = new INPUT[vkInputs.Count];
 
                 foreach (var vkey in vkInputs)
                 {
@@ -227,10 +227,9 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
             if (GetForegroundWindow() == windowHandle)
                 return;
 
-            IntPtr foregroundWindowHandle = GetForegroundWindow();
-            uint currentThreadId = GetCurrentThreadId();
-            uint temp;
-            uint foregroundThreadId = GetWindowThreadProcessId(foregroundWindowHandle, out temp);
+            var foregroundWindowHandle = GetForegroundWindow();
+            var currentThreadId = GetCurrentThreadId();
+            var foregroundThreadId = GetWindowThreadProcessId(foregroundWindowHandle, out var temp);
             AttachThreadInput(currentThreadId, foregroundThreadId, true);
             SetForegroundWindow(windowHandle);
             AttachThreadInput(currentThreadId, foregroundThreadId, false);

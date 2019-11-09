@@ -1,26 +1,21 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Exceptions;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Async
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
-
-
-
     public abstract class BaseAsync<T>
     {
         protected BaseDebug Debug;
         protected GameProcess.GameProcess GameProcess;
         protected List<T> ServiceCollection = new List<T>();
         private Thread _workerThread;
-        protected List<Task<List<T>>> Works = new List<Task<List<T>>>();
+        protected List<Task<Task<List<object>>>> Works = new List<Task<Task<List<object>>>>();
         protected int Precision;
 
         /// <summary>
@@ -39,7 +34,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Async
 
         protected void DoWork()
         {
-            _workerThread = new Thread(() =>
+            _workerThread = new Thread( async () =>
             {
                 while (true)
                 {
@@ -56,14 +51,14 @@ namespace VX_ACE_IT_CORE.MVC.Model.Async
                             {
                                 if (Works[i] as Task<List<T>> != null)
                                 {
-                                    Debug.AddMessage_Assync<object>(new Message<object>("[" + this.GetType().Name + "] request faulted." + " |TaskID[" + Works[i].Id + "]"
-                                        + " |TaskResult[" + (Works[i] as Task<List<T>>).Exception.InnerException.Message + "]", MessageTypeEnum.Error)).Wait(-1);
+                                    await Debug.AddMessage_Assync<object>(new Message<object>("[" + this.GetType().Name + "] request faulted." + " |TaskID[" + Works[i].Id + "]"
+                                                                                              + " |TaskResult[" + (Works[i] as Task<List<T>>).Exception.InnerException.Message + "]", MessageTypeEnum.Error)).ConfigureAwait(false);
                                 }
                                 else
                                 {
-                                    Debug.AddMessage_Assync<object>(new Message<object>("[" + this.GetType().Name + "]  request faulted." + " |TaskID[" + Works[i].Id + "]"
-                                       + " |TaskResult[" + Works[i].Exception.Message + "]", MessageTypeEnum.Error)).Wait(-1);
-                                    Debug.AddMessage_Assync<object>(new Message<object>(ex.Data, MessageTypeEnum.Exception)).Wait(-1);
+                                    await Debug.AddMessage_Assync<object>(new Message<object>("[" + this.GetType().Name + "]  request faulted." + " |TaskID[" + Works[i].Id + "]"
+                                                                                              + " |TaskResult[" + Works[i].Exception.Message + "]", MessageTypeEnum.Error)).ConfigureAwait(false);
+                                    await Debug.AddMessage_Assync<object>(new Message<object>(ex.Data, MessageTypeEnum.Exception)).ConfigureAwait(false);
                                 }
                                 Works.RemoveAt(i);
                             };
@@ -78,17 +73,16 @@ namespace VX_ACE_IT_CORE.MVC.Model.Async
             _workerThread.Start();
         }
 
-        protected void AddWork(Task<List<T>> tasks)
+        protected void AddWork(Task<Task<List<object>>> tasks)
         {
             this.Works.Add(tasks);
         }
 
-        protected T ResultHandler(Task<T> task)
+        protected async Task<T> ResultHandler(Task<T> task)
         {
             try
             {
-                task.Wait(-1);
-                return task.Result;
+                return await task.ConfigureAwait(false);
             }
             catch (AggregateException ae)
             {
@@ -97,7 +91,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Async
                     // Handle the custom exception.
                     if (e is AsyncException)
                     {
-                        Debug.AddMessage_Assync<object>(new Message<object>((e.Message), MessageTypeEnum.Exception)).Wait(-1);
+                        await Debug.AddMessage_Assync<object>(new Message<object>((e.Message), MessageTypeEnum.Exception)).ConfigureAwait(false);
                     }
                     else
                     {
@@ -108,12 +102,11 @@ namespace VX_ACE_IT_CORE.MVC.Model.Async
             return default(T);
         }
 
-        protected List<T> ResultHandler(Task<List<T>> task)
+        protected async Task<List<T>> ResultHandler(Task<List<T>> task)
         {
             try
             {
-                task.Wait(-1);
-                return task.Result;
+                return await task.ConfigureAwait(false);
             }
             catch (AggregateException ae)
             {
@@ -122,7 +115,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Async
                     // Handle the custom exception.
                     if (e is AsyncException)
                     {
-                        Debug.AddMessage_Assync<object>(new Message<object>((e.Message), MessageTypeEnum.Exception)).Wait(-1);
+                        await Debug.AddMessage_Assync<object>(new Message<object>((e.Message), MessageTypeEnum.Exception)).ConfigureAwait(false);
                     }
                     else
                     {

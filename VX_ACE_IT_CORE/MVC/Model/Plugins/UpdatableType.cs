@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
@@ -34,16 +30,16 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
         {
             this.Type = type;
             this._processMethods = processMethods;
-            Init(offsets);
+            InitAsync(offsets);
             if (module != null) BeginUpdatePrimitives(module);
 
         }
 
-        void Init(Dictionary<string, List<List<IntPtr>>> offsets)
+        private void InitAsync(Dictionary<string, List<List<IntPtr>>> offsets)
         {
-            var tsk = new Task<List<object>>(() =>
+            var tsk = new Task<Task<List<object>>>(async () =>
             {
-                foreach (FieldInfo fieldInfo in Type.GetType().GetFields())
+                foreach (var fieldInfo in Type.GetType().GetFields())
                 {
                     // Create plugin config, where will be desearialised class.
                     // idea -> could create entire from serializable document ? Let´s say player could be defined in txt.
@@ -94,12 +90,11 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                 return null;
             });
             AddWork(tsk);
-            tsk.Wait(-1);
         }
 
         public void BeginUpdatePrimitives(PluginBase pluginBase)
         {
-            AddWork(new Task<List<object>>(() =>
+            AddWork(new Task<Task<List<object>>>(async () =>
             {
                 var occurences = new List<KeyValuePair<IntPtr, int>>();
                 while (true)
@@ -176,21 +171,18 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
         {
             //I know this is not nice solution, but what gives. No performance benefit 
             //from optimalisation, since this is just a init.
-            int offsetId = 0;
-            string strList = "{";
+            var offsetId = 0;
+            var strList = "{";
             foreach (var list in lists)
             {
                 strList += "\n[" + offsetId++ + "]{";
-                foreach (IntPtr val in list)
-                {
-                    strList += "[0x" + val.ToString("X") + "]";
-                }
+                strList = list.Aggregate(strList, (current, val) => current + ("[0x" + val.ToString("X") + "]"));
                 if (list.Count == 0) strList += "empty";
                 strList += "}";
             }
 
             if(ToleranceDict.TryGetValue(name, out var value))
-            strList += "\nValTolerance:[" + value + "]}";
+                strList += "\nValTolerance:[" + value + "]}";
             else
                 strList += "\nValTolerance:[Not yet loaded/null]}";
             return strList;

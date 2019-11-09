@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
 using VX_ACE_IT_CORE.Debug;
@@ -149,11 +148,11 @@ namespace VX_ACE_IT_CORE.MVC._Common
         public Config(BaseDebug debug, int width = 1280, int height = 720, string processName = "game", bool windowBorder = true, bool forceRes = true)
             : base(debug, null)
         {
-            var tsk = new Task<List<object>>(() =>
+            var tsk = new Task<Task<List<object>>>(async () =>
             {
-                if (File.Exists(ConfigFileName) && CheckConfigIntegrity())
+                if (File.Exists(ConfigFileName) && await CheckConfigIntegrityAsync().ConfigureAwait(false))
                 {
-                    LoadXmlConfig();
+                    await LoadXmlConfig().ConfigureAwait(false);
                     ConfigVariables.IsInitial = false;
                 }
                 else
@@ -170,19 +169,20 @@ namespace VX_ACE_IT_CORE.MVC._Common
                 return null;
             });
             AddWork(tsk);
-            tsk.Wait(-1);
+            tsk.ConfigureAwait(false);
         }
 
         public Config(BaseDebug debug, bool diff)
         : base(debug, null)
         {
-            AddWork(new Task<List<object>>(() =>
+            AddWork(new Task<Task<List<object>>>(async () =>
             {
+                var isDamaged = await CheckConfigIntegrityAsync().ConfigureAwait(false);
                 lock (xmlSerializer)
                 {
-                    if (File.Exists(ConfigFileName) && CheckConfigIntegrity())
+                    if (File.Exists(ConfigFileName) && isDamaged)
                     {
-                        LoadXmlConfig();
+                        LoadXmlConfig().ConfigureAwait(false);
                     }
                     else
                     {
@@ -201,7 +201,7 @@ namespace VX_ACE_IT_CORE.MVC._Common
 
         public void CreateAndSaveDefaultXmlConfig()
         {
-            AddWork(new Task<List<object>>(() =>
+            AddWork(new Task<Task<List<object>>>(() =>
             {
                 lock (xmlSerializer)
                 {
@@ -210,13 +210,13 @@ namespace VX_ACE_IT_CORE.MVC._Common
                     xmlSerializer.Serialize(_writer, ConfigVariables);
                     _writer.Dispose();
                 }
-                return null;
+                return Task.FromResult<List<object>>(null);
             }));
         }
 
         public void ReplaceXmlConfig()
         {
-            AddWork(new Task<List<object>>(() =>
+            AddWork(new Task<Task<List<object>>>(() =>
             {
                 lock (xmlSerializer)
                 {
@@ -224,16 +224,16 @@ namespace VX_ACE_IT_CORE.MVC._Common
                     xmlSerializer.Serialize(_writer, this.ConfigVariables);
                     _writer.Dispose();
                 }
-                return null;
+                return Task.FromResult<List<object>>(null);
             }));
         }
 
-        public void LoadXmlConfig()
+        public Task<Task<List<object>>> LoadXmlConfig()
         {
-            var t = new Task<List<object>>(() =>
+            var t = new Task<Task<List<object>>>(async () =>
             {
 
-                if (CheckConfigIntegrity())
+                if (await CheckConfigIntegrityAsync().ConfigureAwait(false))
                 {
                     _xmlReader = XmlReader.Create(ConfigFileName);
                     // Just whatever the exception is, the xml file is damaged, user will be asked to remove it.
@@ -241,9 +241,10 @@ namespace VX_ACE_IT_CORE.MVC._Common
                     {
                         ConfigVariables = (ConfigVariables) xmlSerializer.Deserialize(_xmlReader);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
-                        MessageBox.Show("Your Config.xml is damaged.\nRemove it / Save new one.");
+                        //todo: show error
+                        //MessageBox.Show("Your Config.xml is damaged.\nRemove it / Save new one.");
                         _xmlReader.Dispose();
                         throw;
                     }
@@ -254,18 +255,19 @@ namespace VX_ACE_IT_CORE.MVC._Common
                 }
                 else
                 {
-                    MessageBox.Show("Your Config.xml is damaged.\n App is goona be raplace it after save.");
+                    //todo: show error
+                    //MessageBox.Show("Your Config.xml is damaged.\n App is goona be raplace it after save.");
 
                 }
                 return null;
             });
             AddWork(t);
-            t.Wait(-1);
+            return t;
         }
 
-        public bool CheckConfigIntegrity()
+        public async Task<bool> CheckConfigIntegrityAsync()
         {
-            Task<List<object>> tsk = new Task<List<object>>(() =>
+            var tsk = new Task<Task<List<object>>>(async () =>
             {
 
                 lock (xmlSerializer)
@@ -279,7 +281,8 @@ namespace VX_ACE_IT_CORE.MVC._Common
                     }
                     catch (XmlException e)
                     {
-                        MessageBox.Show("Config.xml file is damaged. Remove it / Save new one");
+                        //todo: show error
+                        //MessageBox.Show("Config.xml file is damaged. Remove it / Save new one");
                         _xmlReader.Dispose();
                         Debug.AddMessage<object>(new Message<object>("[" + typeof(XmlReader).Name + "]" + " Remove your config.xml file! => " + e.Message,MessageTypeEnum.Exception));
                         throw;
@@ -287,8 +290,8 @@ namespace VX_ACE_IT_CORE.MVC._Common
                 }
             });
             AddWork(tsk);
-            tsk.Wait(-1);
-            return ((bool)ResultHandler(tsk).First());
+            return (bool?) ((await ResultHandler(await tsk.ConfigureAwait(false))
+                .ConfigureAwait(false)).FirstOrDefault()) ?? false;
         }
 
     }

@@ -25,7 +25,7 @@ namespace VX_ACE_IT_CORE.Debug
 
         public BaseDebug(bool threadStart = true)
         {
-            DebugThread = new Thread(() =>
+            DebugThread = new Thread( async () =>
             {
                 while (true)
                 {
@@ -44,7 +44,7 @@ namespace VX_ACE_IT_CORE.Debug
                                 _tasks.RemoveAt(i);
                                 try
                                 {
-                                    ResultHandler(task).Wait(-1);
+                                    await ResultHandler(task).ConfigureAwait(false);
                                 }
                                 catch (AggregateException e)
                                 {
