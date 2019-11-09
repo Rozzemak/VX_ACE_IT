@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Dynamic;
 using System.Globalization;
 using System.IO;
@@ -96,14 +97,14 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                         if (!(reader.Root.Element(field.Name) is null) && reader.Root.Element(field.Name).HasAttributes)
                         {
                             offsetlists.Clear();
-                            foreach (XAttribute list in reader.Root.Element(field.Name)?.Attributes())
+                            foreach (var list in reader.Root.Element(field.Name)?.Attributes())
                             {
                                 if (list.Name.LocalName.ToLower().Contains("tolerance") && list.Value != " ")
                                 {
                                     if (tuples.ContainsKey(field.Name)) tuples.Remove(field.Name);
-                                    tuples.Add(field.Name, ((int)new System.ComponentModel.Int32Converter().
+                                    tuples.Add(field.Name, ((int)new Int32Converter().
                                             ConvertFromString(list.Value.Split(' ').FirstOrDefault()),
-                                        ((int)new System.ComponentModel.Int32Converter().
+                                        ((int)new Int32Converter().
                                             ConvertFromString(list.Value.Split(' ').LastOrDefault()))));
                                 }
                                 foreach (var offset in list.Value.Split(' '))
@@ -113,7 +114,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                         if (offset.Length > 0)
                                         {
                                             val = new IntPtr(
-                                                (uint)new System.ComponentModel.UInt32Converter()
+                                                (uint)new UInt32Converter()
                                                     .ConvertFromString(offset));
                                         }
                                         // Reading of 0x0 value -> adress in memory is actually required functionality.
@@ -147,7 +148,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
 
             task.Wait(-1);
             tolerances = tuples;
-            return task.Result.First() as Dictionary<string, List<List<IntPtr>>>;
+            // ReSharper disable once AsyncConverter.AsyncWait
+            return task.Result.FirstOrDefault() as Dictionary<string, List<List<IntPtr>>>;
         }
 
         private Dictionary<string, List<List<IntPtr>>> InitOffsets(string objName, IEnumerable<string> props, out Dictionary<string, (int, int)> tolerances)
@@ -161,8 +163,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                            + _plugin.GetType().Name.Substring(0, _plugin.GetType().Name.Length)
                            + "/" + objName + ".xml";
                 var xmlSerializer = new JsonFx.Xml.XmlWriter();
-                Dictionary<string, List<List<IntPtr>>> offsets = new Dictionary<string, List<List<IntPtr>>>();
-                IntPtr val = IntPtr.Zero;
+                var offsets = new Dictionary<string, List<List<IntPtr>>>();
+                var val = IntPtr.Zero;
                 if (!File.Exists(path))
                 {
                     Directory.CreateDirectory(Directory.GetCurrentDirectory()
@@ -194,14 +196,14 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                 if (!(reader.Root.Element(field) is null) && reader.Root.Element(field).HasAttributes)
                                 {
                                     offsetlists.Clear();
-                                    foreach (XAttribute list in reader.Root.Element(field)?.Attributes())
+                                    foreach (var list in reader.Root.Element(field)?.Attributes())
                                     {
                                         if (list.Name.LocalName.ToLower().Contains("tolerance") && list.Value != " ")
                                         {
                                             if (tuples.ContainsKey(field)) tuples.Remove(field);
                                             tuples.Add(field,
-                                                ((int)new System.ComponentModel.Int32Converter().ConvertFromString(list.Value.Split(' ').FirstOrDefault()),
-                                                    ((int)new System.ComponentModel.Int32Converter().ConvertFromString(
+                                                ((int)new Int32Converter().ConvertFromString(list.Value.Split(' ').FirstOrDefault()),
+                                                    ((int)new Int32Converter().ConvertFromString(
                                                         list.Value.Split(' ').LastOrDefault()))));
                                         }
 
@@ -212,7 +214,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                                 if (offset.Length > 0)
                                                 {
                                                     val = new IntPtr(
-                                                        (uint)new System.ComponentModel.UInt32Converter()
+                                                        (uint)new UInt32Converter()
                                                             .ConvertFromString(offset));
                                                 }
 
@@ -261,8 +263,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                         {
                                             if (tuples.ContainsKey(field)) tuples.Remove(field);
                                             tuples.Add(field,
-                                                ((int)new System.ComponentModel.Int32Converter().ConvertFromString(list.Value.Split(' ').FirstOrDefault()),
-                                                    ((int)new System.ComponentModel.Int32Converter()
+                                                ((int)new Int32Converter().ConvertFromString(list.Value.Split(' ').FirstOrDefault()),
+                                                    ((int)new Int32Converter()
                                                         .ConvertFromString(
                                                             list.Value.Split(' ').LastOrDefault()))));
                                         }
@@ -275,7 +277,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                                 if (offset.Length > 0)
                                                 {
                                                     val = new IntPtr(
-                                                        (uint)new System.ComponentModel.UInt32Converter()
+                                                        (uint)new UInt32Converter()
                                                             .ConvertFromString(offset));
                                                 }
 
@@ -317,6 +319,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
 
             AddWork(task);
 
+            
             task.Wait(-1);
             tolerances = tuples;
             return task.Result.First() as Dictionary<string, List<List<IntPtr>>>;

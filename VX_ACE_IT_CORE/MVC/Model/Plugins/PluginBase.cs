@@ -63,7 +63,6 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                 {
                     Interlocked.Exchange(ref ModuleBaseAddr,
                         ProcessMethods._gameProcess.GetModuleAddresByName(ModuleName).BaseAddress);
-                    // NOOOOO RgssBase = _processMethods._gameProcess.GetModuleAddresByName(ModuleName).BaseAddress; 
                     // There could be problem, with not enough updates for base adress. time/2 should work then.
                     Thread.Sleep(Precision);
                 }

@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
@@ -94,7 +93,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                 {
                     // Create OnOffsetUpdate delegate.
                     if(!props.Any())
-                    Debug.AddMessage<object>(new Message<object>(
+                        Debug.AddMessage<object>(new Message<object>(
                         "[" + GetType().Name + "][" + this.Type.GetType().Name + "] more offsets loaded than there are fields in the class. Check your config for additional lines.",
                         MessageTypeEnum.Indifferent));
                     else
@@ -134,6 +133,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                 return null;
             });
             AddWork(tsk);
+            // ReSharper disable once AsyncConverter.AsyncWait
             tsk.Wait(-1);
         }
 
@@ -246,16 +246,13 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
         {
             //I know this is not nice solution, but what gives. No performance benefit 
             //from optimalisation, since this is just a init.
-            int offsetId = 0;
-            string strList = "{";
+            var offsetId = 0;
+            var strList = "{";
             foreach (var list in lists)
             {
                 strList += "\n[" + offsetId++ + "]{";
-                foreach (IntPtr val in list)
-                {
-                    strList += "[0x" + val.ToString("X") + "]";
-                }
-                if (list.Count == 0) strList += "empty";
+                strList = list.Aggregate(strList, (current, val) => current + ("[0x" + val.ToString("X") + "]"));
+                if (!list.Any()) strList += "empty";
                 strList += "}";
             }
 

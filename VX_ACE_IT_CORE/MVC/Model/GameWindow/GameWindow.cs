@@ -97,40 +97,40 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
 
         public void SetWindowFromConfig()
         {
-            AddWork(new Task<Task<List<object>>>(() =>
+            AddWork(new Task<List<object>>(() =>
             {
                 OnIconicRestore();
                 ShowWindowAsync(GameProcess.Process.MainWindowHandle, 5);
                 SetWindowPos(GameProcess.Process.MainWindowHandle, new IntPtr(-2), 0, 0, _config.ConfigVariables.Width, _config.ConfigVariables.Height, 0);
                 SetForegroundWindow(GameProcess.Process.MainWindowHandle);
-                return Task.FromResult<List<object>>(null);
+                return new List<object>(){};
             }));
 
         }
 
         public void SetWindowStyle(int? style = null)
         {
-            AddWork(new Task<Task<List<object>>>(() =>
+            AddWork(new Task<List<object>>(() =>
             {
                 OnIconicRestore();
                 var hwnd = GameProcess.Process.MainWindowHandle;
                 ShowWindowAsync(hwnd, 5);
                 SetWindowLong(hwnd, GwlStyle, GetWindowLong(hwnd, style ?? -16) & ~WsCaption);
                 SetForegroundWindow(hwnd);
-                return Task.FromResult<List<object>>(null);
+                return new List<object>(){};
             }));
         }
 
 
         public void SetWindowStyleBorder(int? style = null)
         {
-            AddWork(new Task<Task<List<object>>>(() =>
+            AddWork(new Task<List<object>>(() =>
             {
                 var hwnd = GameProcess.Process.MainWindowHandle;
                 ShowWindowAsync(hwnd, 5);
                 SetWindowLong(hwnd, GwlStyle, GetWindowLong(hwnd, style ?? -16) | WsCaption);
                 SetForegroundWindow(hwnd);
-                return Task.FromResult<List<object>>(null);
+                return new List<object>(){};
             }));
         }
 
@@ -166,7 +166,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
 
         public void SimulateKeyPress(List<int> vkInputs, bool release = false)
         {
-            AddWork(new Task<Task<List<object>>>((() =>
+            AddWork(new Task<List<object>>((() =>
             {
                 SwitchWindow(GameProcess.Process.MainWindowHandle);
                 var inputs = new INPUT[vkInputs.Count];

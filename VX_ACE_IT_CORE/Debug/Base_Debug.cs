@@ -94,7 +94,7 @@ namespace VX_ACE_IT_CORE.Debug
             _tasks.Add(task);
         }
 
-        public async Task<bool> AddMessage_Assync<T>(Message<object> msg)
+        public async Task<bool> AddMessage_Async<T>(Message<object> msg)
         {
             Task task = new Task(() =>
             {

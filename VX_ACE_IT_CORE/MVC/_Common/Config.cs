@@ -148,11 +148,11 @@ namespace VX_ACE_IT_CORE.MVC._Common
         public Config(BaseDebug debug, int width = 1280, int height = 720, string processName = "game", bool windowBorder = true, bool forceRes = true)
             : base(debug, null)
         {
-            var tsk = new Task<Task<List<object>>>(async () =>
+            var tsk = new Task<List<object>>(() =>
             {
-                if (File.Exists(ConfigFileName) && await CheckConfigIntegrityAsync().ConfigureAwait(false))
+                if (File.Exists(ConfigFileName) && CheckConfigIntegrityAsync())
                 {
-                    await LoadXmlConfig().ConfigureAwait(false);
+                    LoadXmlConfig().ConfigureAwait(false);
                     ConfigVariables.IsInitial = false;
                 }
                 else
@@ -175,14 +175,14 @@ namespace VX_ACE_IT_CORE.MVC._Common
         public Config(BaseDebug debug, bool diff)
         : base(debug, null)
         {
-            AddWork(new Task<Task<List<object>>>(async () =>
+            AddWork(new Task<List<object>>(() =>
             {
-                var isDamaged = await CheckConfigIntegrityAsync().ConfigureAwait(false);
+                var isDamaged = CheckConfigIntegrityAsync();
                 lock (xmlSerializer)
                 {
                     if (File.Exists(ConfigFileName) && isDamaged)
                     {
-                        LoadXmlConfig().ConfigureAwait(false);
+                        LoadXmlConfig();
                     }
                     else
                     {
@@ -201,7 +201,7 @@ namespace VX_ACE_IT_CORE.MVC._Common
 
         public void CreateAndSaveDefaultXmlConfig()
         {
-            AddWork(new Task<Task<List<object>>>(() =>
+            AddWork(new Task<List<object>>(() =>
             {
                 lock (xmlSerializer)
                 {
@@ -210,13 +210,13 @@ namespace VX_ACE_IT_CORE.MVC._Common
                     xmlSerializer.Serialize(_writer, ConfigVariables);
                     _writer.Dispose();
                 }
-                return Task.FromResult<List<object>>(null);
+                return new List<object>(){};
             }));
         }
 
         public void ReplaceXmlConfig()
         {
-            AddWork(new Task<Task<List<object>>>(() =>
+            AddWork(new Task<List<object>>(() =>
             {
                 lock (xmlSerializer)
                 {
@@ -224,16 +224,16 @@ namespace VX_ACE_IT_CORE.MVC._Common
                     xmlSerializer.Serialize(_writer, this.ConfigVariables);
                     _writer.Dispose();
                 }
-                return Task.FromResult<List<object>>(null);
+                return new List<object>();
             }));
         }
 
-        public Task<Task<List<object>>> LoadXmlConfig()
+        public Task<List<object>> LoadXmlConfig()
         {
-            var t = new Task<Task<List<object>>>(async () =>
+            var t = new Task<List<object>>( () =>
             {
 
-                if (await CheckConfigIntegrityAsync().ConfigureAwait(false))
+                if (CheckConfigIntegrityAsync())
                 {
                     _xmlReader = XmlReader.Create(ConfigFileName);
                     // Just whatever the exception is, the xml file is damaged, user will be asked to remove it.
@@ -265,9 +265,9 @@ namespace VX_ACE_IT_CORE.MVC._Common
             return t;
         }
 
-        public async Task<bool> CheckConfigIntegrityAsync()
+        public bool CheckConfigIntegrityAsync()
         {
-            var tsk = new Task<Task<List<object>>>(async () =>
+            var tsk = new Task<List<object>>(() =>
             {
 
                 lock (xmlSerializer)
@@ -290,8 +290,8 @@ namespace VX_ACE_IT_CORE.MVC._Common
                 }
             });
             AddWork(tsk);
-            return (bool?) ((await ResultHandler(await tsk.ConfigureAwait(false))
-                .ConfigureAwait(false)).FirstOrDefault()) ?? false;
+            tsk.Wait(-1);
+            return (bool?) ((ResultHandler(tsk)).FirstOrDefault()) ?? false;
         }
 
     }

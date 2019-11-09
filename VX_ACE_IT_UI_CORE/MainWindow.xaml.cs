@@ -1,24 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Xml;
 using VX_ACE_IT_CORE;
 using VX_ACE_IT_CORE.Debug;
@@ -26,6 +18,7 @@ using VX_ACE_IT_CORE.MVC._Common;
 using VX_ACE_IT_CORE.MVC.Model.GameWindow;
 using VX_ACE_IT_CORE.MVC.Model.Plugins;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
+using VX_ACE_IT_UI_CORE;
 
 namespace VX_ACE_IT_UI_CORE
 {
@@ -38,6 +31,8 @@ namespace VX_ACE_IT_UI_CORE
         private Core _core;
         private readonly BaseDebug _debug = new BaseDebug();
         private UIElement _processListDefaultItem = new UIElement();
+
+
 
         public MainWindow()
         {
@@ -53,7 +48,7 @@ namespace VX_ACE_IT_UI_CORE
             {
                 if (!_config.ConfigVariables.IsInitial)
                 {
-                    Application.Current.Dispatcher?.Invoke(() =>
+                    App.Current.Dispatcher.Invoke(() =>
                     {
                         CloseAllDialogs();
                         RootLogicStackPanel.Visibility = Visibility.Visible;
@@ -94,7 +89,7 @@ namespace VX_ACE_IT_UI_CORE
 
         private void GameProcess_OnKill(object sender, EventArgs e)
         {
-            Dispatcher?.Invoke(() =>
+            Dispatcher.Invoke(() =>
             {
                 ShowWelcomeScreen();
                 MainWindow_Loaded(this, null);
@@ -116,7 +111,7 @@ namespace VX_ACE_IT_UI_CORE
 
         private void ShowWelcomeScreen()
         {
-            Application.Current.Dispatcher?.Invoke(() =>
+            App.Current.Dispatcher.Invoke(() =>
             {
                 RootLogicStackPanel.Visibility = Visibility.Collapsed;
                 DimmGrid.Visibility = Visibility.Visible;
@@ -210,6 +205,11 @@ namespace VX_ACE_IT_UI_CORE
         {
             App.Current.MainWindow.Visibility = Visibility.Collapsed;
 
+            this.Dispatcher.Invoke(() =>
+            {
+                //_core._controller?.GameOverlayPlugin?.Overlay?.BeforeDispose();
+            });
+
             new Task(() =>
             {
                 Thread.Sleep(10);
@@ -220,6 +220,7 @@ namespace VX_ACE_IT_UI_CORE
 
         private void RPMButton_OnClick(object sender, RoutedEventArgs e)
         {
+            //_core._controller.GameOverlayPlugin.StartDemo(_core._controller.GameProcess.Process, Application.Current.Dispatcher);
 
             //debug.AddMessage<object>(new Message<object>(
             //    //"AdressValue: " + _core._controller.ProcessMethods.RPM<int>(new IntPtr(0x0F6532D0)) +""
@@ -256,8 +257,6 @@ namespace VX_ACE_IT_UI_CORE
                                              ?? throw new InvalidOperationException("ListBox is null (UI-Welcome)");
         }
 
-
-
         private void WelcomeProcessNameTextBox_OnTextChanged(object sender, TextChangedEventArgs e)
         {
             Dispatcher.Invoke(() =>
@@ -267,7 +266,7 @@ namespace VX_ACE_IT_UI_CORE
                     ProcessListListBox.Items.Clear();
                     string processName = (sender as TextBox)?.Text ?? "";
 
-                    foreach (var process in Process.GetProcessesByName(processName))
+                    foreach (var process in System.Diagnostics.Process.GetProcessesByName(processName))
                     {
                         if (!Is64BitProcess(process))
                         {
@@ -290,7 +289,7 @@ namespace VX_ACE_IT_UI_CORE
                         }
                     }
 
-                    ProcessListExpander.IsExpanded = Process.GetProcessesByName(processName).Length > 0;
+                    ProcessListExpander.IsExpanded = System.Diagnostics.Process.GetProcessesByName(processName).Length > 0;
                 }
             });
         }
@@ -309,7 +308,7 @@ namespace VX_ACE_IT_UI_CORE
             return (UIElement)XamlReader.Load(xmlTextReader);
         }
 
-        private bool Is64BitProcess(Process process)
+        private bool Is64BitProcess(System.Diagnostics.Process process)
         {
             if (!Environment.Is64BitOperatingSystem)
                 return false;
@@ -323,9 +322,39 @@ namespace VX_ACE_IT_UI_CORE
         [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool IsWow64Process([In] IntPtr processHandle, [Out, MarshalAs(UnmanagedType.Bool)] out bool wow64Process);
+
+
         #endregion
 
-
-
+        private void Test_Click(object sender, RoutedEventArgs e)
+        {
+            /*var shape = new Rectangle()
+            {
+                Visibility = Visibility.Visible,
+                Name = "rectiongle",
+                Height = 50,
+                Width = 50,
+                Fill = Brushes.BurlyWood,
+                Focusable = true,
+                ToolTip = "hey, im over",
+            };
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                TranslateTransform transform = new TranslateTransform(shape.RenderTransform.Value.M21, shape.RenderTransform.Value.M22);
+                _core._controller.Keyboard.Interceptor.KeyDown += (o, args) =>
+                {
+                    //var n = shape.RenderTransform.Value.M12;
+                    //UIElement uiElement = _core._controller.GameOverlayPlugin.Overlay.GetUiElement("rectiongle");
+                    transform.X += 5;
+                    uiElement.RenderTransform = transform;
+                };
+                //Mouse events will not work in current impl.
+                shape.MouseEnter += (o, args) =>
+                    _debug.AddMessage<object>(new Message<object>(shape.GetType() + " was clicked."));
+                //_core._controller.GameOverlayPlugin.Overlay.AddShape(shape);
+                //_core._controller.GameOverlayPlugin.Overlay.AddEvent(shape, () => _debug.AddMessage<object>(new Message<object>(shape.GetType() + " was clicked.")), Dispatcher.CurrentDispatcher);
+            });
+            */
+        }
     }
 }

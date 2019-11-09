@@ -5,12 +5,9 @@
     <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,7 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="JsonFx" Version="2.0.1209.2802" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0-preview2.19523.17" />
+    <PackageReference Include="Open.WinKeyboardHook" Version="1.0.11" />
   </ItemGroup>
 
   <ItemGroup>

@@ -5,14 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using Overlay.NET.Common;
-using Process.NET.Windows.Keyboard;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
 using VX_ACE_IT_CORE.MVC.Model.GameWindow;
 using VX_ACE_IT_CORE.MVC.Model.Keyboard;
 using VX_ACE_IT_CORE.MVC.Model.Offsets;
-using VX_ACE_IT_CORE.MVC.Model.Overlay;
 using VX_ACE_IT_CORE.MVC.Model.Plugins;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.GLOBAL_TYPES;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE;
@@ -33,7 +30,7 @@ namespace VX_ACE_IT_CORE.MVC.Controller
 
         public PluginService PluginService;
 
-        public GameOverlayPlugin GameOverlayPlugin;
+        //public GameOverlayPlugin GameOverlayPlugin;
 
         public KeyboardListener Keyboard;
 
@@ -69,8 +66,8 @@ namespace VX_ACE_IT_CORE.MVC.Controller
 
         private void InitOverlay()
         {
-           GameOverlayPlugin = new GameOverlayPlugin();
-            GameOverlayPlugin.StartDemo(this.GameProcess.Process, Dispatcher.CurrentDispatcher);
+            //GameOverlayPlugin = new GameOverlayPlugin();
+            //GameOverlayPlugin.StartDemo(this.GameProcess.Process, Dispatcher.CurrentDispatcher);
         }
 
         public void SetWindowPosFromConfig()

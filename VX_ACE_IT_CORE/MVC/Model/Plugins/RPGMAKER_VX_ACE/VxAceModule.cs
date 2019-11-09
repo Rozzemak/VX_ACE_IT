@@ -8,8 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Windows.Navigation;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
@@ -22,7 +20,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
     public class VxAceModule : PluginBase
     {
         public VxAceModule(BaseDebug baseDebug, ProcessMethods processMethods, Action updatables, int precision = 17)
-        : base(baseDebug, processMethods, "RGSS300.dll", updatables, precision)
+        : base(baseDebug, processMethods, "RGSS301.dll", updatables, precision)
         {
             if (updatables is null)
             {

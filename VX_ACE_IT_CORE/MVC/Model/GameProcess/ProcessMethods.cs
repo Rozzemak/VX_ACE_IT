@@ -29,7 +29,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
         {
             T[] buffer = new T[SizeOf<T>()];
             ReadProcessMemory(_gameProcess.Process.Handle, lpBaseAddress, buffer, SizeOf<T>(), out var bytesread);
-            return buffer.First(); // [0] would be faster, but First() is safer. Eq of buffer[0] ?? default(T)
+            return buffer.FirstOrDefault(); // [0] would be faster, but First() is safer. Eq of buffer[0] ?? default(T)
         }
 
 
