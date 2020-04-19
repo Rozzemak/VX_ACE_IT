@@ -12,9 +12,11 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Xml;
+using Microsoft.Extensions.Configuration;
 using VX_ACE_IT_CORE;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC._Common;
+using VX_ACE_IT_CORE.MVC.Model.Configuration;
 using VX_ACE_IT_CORE.MVC.Model.GameWindow;
 using VX_ACE_IT_CORE.MVC.Model.Plugins;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
@@ -43,10 +45,10 @@ namespace VX_ACE_IT_UI_CORE
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             _config = new Config(_debug);
-
             new Task(() =>
             {
-                if (!_config.ConfigVariables.IsInitial)
+               
+                if (!_config.Configuration.GetSection(nameof(AppCfg)).Get<AppCfg>().IsInitial)
                 {
                     App.Current.Dispatcher.Invoke(() =>
                     {
@@ -73,11 +75,13 @@ namespace VX_ACE_IT_UI_CORE
 
         private void InitUiFromConfig()
         {
-            _config.LoadXmlConfig();
+            //_config.LoadXmlConfig();
 
-            WelcomeProcessNameTextBox.Text = _config.ConfigVariables.ProcessName;
-            WelcomeResolution.Text = _config.ConfigVariables.Width + "x" + _config.ConfigVariables.Height;
-            WelcomeBorder.IsChecked = _config.ConfigVariables.IsWindowBorder;
+            var process =  _config.Configuration.GetSection(nameof(GameProcessCfg)).Get<GameProcessCfg>();
+            var window =  _config.Configuration.GetSection(nameof(GameWindowCfg)).Get<GameWindowCfg>();
+            WelcomeProcessNameTextBox.Text = process.ProcessName;
+            WelcomeResolution.Text = window.Width + "x" + window.Height;
+            WelcomeBorder.IsChecked = window.IsWindowBorderVisible;
         }
 
         private void SubscribeEvents(Core core)
@@ -93,8 +97,9 @@ namespace VX_ACE_IT_UI_CORE
             {
                 ShowWelcomeScreen();
                 MainWindow_Loaded(this, null);
-                this.WelcomeProcessNameTextBox.Text = _config.ConfigVariables.ProcessName.Split('_').Length > 1
-                    ? _config.ConfigVariables.ProcessName.Split('_').First() : _config.ConfigVariables.ProcessName;
+                var processCfg = _config.Configuration.GetSection(nameof(GameProcessCfg)).Get<GameProcessCfg>();
+                WelcomeProcessNameTextBox.Text = processCfg.ProcessName.Split('_').Length > 1
+                    ? processCfg.ProcessName.Split('_').First() : processCfg.ProcessName;
             });
         }
 
@@ -122,7 +127,8 @@ namespace VX_ACE_IT_UI_CORE
         private void InjectButton_Click(object sender, RoutedEventArgs e)
         {
             _core._controller.SetWindowPosFromConfig();
-            _core._controller.SetWindowStyle(_config.ConfigVariables.IsWindowBorder ? WindowStyles.NoBorder : WindowStyles.Border);
+            var window = _config.Configuration.GetSection(nameof(GameWindowCfg)).Get<GameWindowCfg>();
+            _core._controller.SetWindowStyle(window.IsWindowBorderVisible ? WindowStyles.NoBorder : WindowStyles.Border);
         }
 
         private void CloseAllDialogs()
@@ -151,9 +157,9 @@ namespace VX_ACE_IT_UI_CORE
             {
                 var text = (WelcomeResolution.SelectedItem as ComboBoxItem)?.Content.ToString() ??
                       WelcomeResolution.Text;
-                var re1 = "(\\d+)";  // Integer Number 1
-                var re2 = "(.)"; // Any Single Character 1
-                var re3 = "(\\d+)";  // Integer Number 2
+                const string re1 = "(\\d+)"; // Integer Number 1
+                const string re2 = "(.)"; // Any Single Character 1
+                const string re3 = "(\\d+)"; // Integer Number 2
 
                 var r = new Regex(re1 + re2 + re3, RegexOptions.IgnoreCase | RegexOptions.Singleline);
                 var m = r.Match(text);
@@ -165,16 +171,8 @@ namespace VX_ACE_IT_UI_CORE
             }
             if (width != 0 && height != 0)
             {
-                _config.ConfigVariables = new ConfigVariables()
-                {
-                    Width = width,
-                    Height = height,
-                    IsInitial = false,
-                    IsWindowBorder = WelcomeBorder.IsChecked.Value,
-                    ProcessName = WelcomeProcessNameTextBox.Text
-                };
-                _config.ReplaceXmlConfig();
-                _core._controller.GameProcess.FetchProcess(_config.ConfigVariables.ProcessName);
+                var processCfg = _config.Configuration.GetSection(nameof(GameProcessCfg)).Get<GameProcessCfg>();
+                _core._controller.GameProcess.FetchProcess(processCfg.ProcessName);
             }
             else
             {
@@ -227,7 +225,7 @@ namespace VX_ACE_IT_UI_CORE
             //    "AdressValue: " + _core._controller.ProcessMethods.Rpm<int>(new IntPtr(Convert.ToUInt32(AdressTextBox.Text, 16))) + ""
             //    ));
             //int address = Convert.ToInt32(AdressTextBox.Text,16);
-            this._debug.AddMessage<object>(new Message<object>((_core._controller.PluginService.Plugins.First().UpdatableTypes.First() as UpdatableType<Player>).Type.ToString()));
+            _debug.AddMessage<object>(new Message<object>((_core._controller.PluginService.Plugins.FirstOrDefault()?.UpdatableTypes.FirstOrDefault() as UpdatableType<Player>)?.Type.ToString()));
             (_core._controller.PluginService.Plugins.First().UpdatableTypes.First() as UpdatableType<Player>)?.SetValue("Hp", new Numeric<int>(460, true).EngineValue);
             new Task(() =>
             {

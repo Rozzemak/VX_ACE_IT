@@ -5,9 +5,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using Microsoft.Extensions.Configuration;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC._Common;
+using VX_ACE_IT_CORE.MVC.Model.Configuration;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
 
 namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
@@ -99,9 +101,10 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
         {
             AddWork(new Task<List<object>>(() =>
             {
+                var cfg = _config.Configuration.GetSection(nameof(GameWindowCfg)).Get<GameWindowCfg>();
                 OnIconicRestore();
                 ShowWindowAsync(GameProcess.Process.MainWindowHandle, 5);
-                SetWindowPos(GameProcess.Process.MainWindowHandle, new IntPtr(-2), 0, 0, _config.ConfigVariables.Width, _config.ConfigVariables.Height, 0);
+                SetWindowPos(GameProcess.Process.MainWindowHandle, new IntPtr(-2), 0, 0, cfg.Width, cfg.Height, 0);
                 SetForegroundWindow(GameProcess.Process.MainWindowHandle);
                 return new List<object>(){};
             }));

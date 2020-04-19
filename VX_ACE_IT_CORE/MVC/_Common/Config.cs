@@ -10,268 +10,70 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using Microsoft.Extensions.Configuration;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Async;
 
 
 namespace VX_ACE_IT_CORE.MVC._Common
 {
-    [XmlRoot("ConfigVariables")]
-    public class ConfigVariables : INotifyPropertyChanged
-    {
-        private int _width = 1280;
-        private int _height = 720;
-
-        private bool _isWindowBorder = true;
-        private bool _isCheckForUpdates = false;
-        private bool _forceRes = true;
-
-        private bool _isInitial = true;
-
-        private string _processName = "game";
-
-
-        #region GetSetProps
-
-        public bool IsWindowBorder
-        {
-            get { return _isWindowBorder; }
-            set
-            {
-                if (_isWindowBorder != value)
-                {
-                    _isWindowBorder = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-        public bool IsForceRes
-        {
-            get { return _forceRes; }
-            set
-            {
-                if (_forceRes != value)
-                {
-                    _forceRes = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-        public bool IsCheckForUpdates
-        {
-            get { return _isCheckForUpdates; }
-            set
-            {
-                if (_isCheckForUpdates != value)
-                {
-                    _isCheckForUpdates = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public string ProcessName
-        {
-            get { return _processName; }
-            set
-            {
-                if (_processName != value)
-                {
-                    _processName = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-        public int Width
-        {
-            get { return _width; }
-            set
-            {
-                if (_width != value)
-                {
-                    _width = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-        public int Height
-        {
-            get { return _height; }
-            set
-            {
-                if (_height != value)
-                {
-                    _height = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public bool IsInitial
-        {
-            get { return _isInitial; }
-            set
-            {
-                if (_isInitial != value)
-                {
-                    _isInitial = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-        #endregion
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public ConfigVariables()
-        {
-
-        }
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-    }
-
     public class Config : BaseAsync<object>
     {
-
-        public ConfigVariables ConfigVariables = new ConfigVariables();
-
-        public const string ConfigFileName = "Config.xml";
-
-        private XmlSerializer xmlSerializer = new XmlSerializer(typeof(ConfigVariables));
-        private TextWriter _writer;
-        private XmlReader _xmlReader;
-
-        public Config(BaseDebug debug, int width = 1280, int height = 720, string processName = "game", bool windowBorder = true, bool forceRes = true)
-            : base(debug, null)
+        private static IConfiguration? Cfg;
+        public IConfiguration Configuration => GetConfig();
+        private static IConfiguration GetConfig()
+        {
+            if (!(Cfg is null)) return Cfg;
+            IConfiguration cfg;
+            var devPath = Path.Combine(new DirectoryInfo(Environment.CurrentDirectory)?.Parent?.FullName,
+                "API_Context");
+            if (Directory.Exists(devPath))
+                cfg = new ConfigurationBuilder()
+                    .SetBasePath(
+                        $"{Path.Combine(new DirectoryInfo(Environment.CurrentDirectory)?.Parent?.FullName, "VX_ACE_IT_CORE")}")
+                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                    .AddEnvironmentVariables()
+                    .Build();
+            else
+            {
+                cfg = new ConfigurationBuilder()
+                    .SetBasePath($"{new DirectoryInfo(Environment.CurrentDirectory)?.FullName}")
+                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                    .AddEnvironmentVariables()
+                    .Build();
+            }
+            Cfg = cfg;
+            return Cfg;
+        }
+        
+        public Config(BaseDebug debug) : base(debug, null)
         {
             var tsk = new Task<List<object>>(() =>
             {
-                if (File.Exists(ConfigFileName) && CheckConfigIntegrityAsync())
+                if (File.Exists("appsettings.json") && CheckConfigIntegrityAsync())
                 {
-                    LoadXmlConfig().ConfigureAwait(false);
-                    ConfigVariables.IsInitial = false;
+                    //todo: Check if GetSection serialized types are readonly and refs to the actual config.
+                    Configuration["App:IsInitial"] = "false";
                 }
                 else
                 {
-                    ConfigVariables.Width = width;
-                    ConfigVariables.Height = height;
-                    ConfigVariables.ProcessName = processName;
-                    ConfigVariables.IsWindowBorder = windowBorder;
-                    ConfigVariables.IsForceRes = forceRes;
-                    ReplaceXmlConfig();
+                    //todo: fix this shit
+                    //ReplaceJsonConfig();
                 }
-
-                ConfigVariables.PropertyChanged += ConfigVariables_PropertyChanged;
-                return null;
+                return null!;
             });
             AddWork(tsk);
             tsk.ConfigureAwait(false);
         }
-
-        public Config(BaseDebug debug, bool diff)
-        : base(debug, null)
-        {
-            AddWork(new Task<List<object>>(() =>
-            {
-                var isDamaged = CheckConfigIntegrityAsync();
-                lock (xmlSerializer)
-                {
-                    if (File.Exists(ConfigFileName) && isDamaged)
-                    {
-                        LoadXmlConfig();
-                    }
-                    else
-                    {
-                        CreateAndSaveDefaultXmlConfig();
-                    }
-                    ConfigVariables.PropertyChanged += ConfigVariables_PropertyChanged;
-                }
-                return null;
-            }));
-        }
-
-        private void ConfigVariables_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            ReplaceXmlConfig();
-        }
-
-        public void CreateAndSaveDefaultXmlConfig()
-        {
-            AddWork(new Task<List<object>>(() =>
-            {
-                lock (xmlSerializer)
-                {
-                    ConfigVariables = new ConfigVariables();
-                    _writer = new StreamWriter(ConfigFileName, false);
-                    xmlSerializer.Serialize(_writer, ConfigVariables);
-                    _writer.Dispose();
-                }
-                return new List<object>(){};
-            }));
-        }
-
-        public void ReplaceXmlConfig()
-        {
-            AddWork(new Task<List<object>>(() =>
-            {
-                lock (xmlSerializer)
-                {
-                    _writer = new StreamWriter(ConfigFileName, false);
-                    xmlSerializer.Serialize(_writer, this.ConfigVariables);
-                    _writer.Dispose();
-                }
-                return new List<object>();
-            }));
-        }
-
-        public Task<List<object>> LoadXmlConfig()
-        {
-            var t = new Task<List<object>>( () =>
-            {
-
-                if (CheckConfigIntegrityAsync())
-                {
-                    _xmlReader = XmlReader.Create(ConfigFileName);
-                    // Just whatever the exception is, the xml file is damaged, user will be asked to remove it.
-                    try
-                    {
-                        ConfigVariables = (ConfigVariables) xmlSerializer.Deserialize(_xmlReader);
-                    }
-                    catch (Exception)
-                    {
-                        //todo: show error
-                        //MessageBox.Show("Your Config.xml is damaged.\nRemove it / Save new one.");
-                        _xmlReader.Dispose();
-                        throw;
-                    }
-                    finally
-                    {
-                        _xmlReader.Dispose();
-                    }
-                }
-                else
-                {
-                    //todo: show error
-                    //MessageBox.Show("Your Config.xml is damaged.\n App is goona be raplace it after save.");
-
-                }
-                return null;
-            });
-            AddWork(t);
-            return t;
-        }
-
+        
         public bool CheckConfigIntegrityAsync()
         {
             var tsk = new Task<List<object>>(() =>
             {
 
-                lock (xmlSerializer)
+                lock (Configuration)
                 {
+                    /*
                     _xmlReader = XmlReader.Create(ConfigFileName);
                     try
                     {
@@ -287,6 +89,8 @@ namespace VX_ACE_IT_CORE.MVC._Common
                         Debug.AddMessage<object>(new Message<object>("[" + typeof(XmlReader).Name + "]" + " Remove your config.xml file! => " + e.Message,MessageTypeEnum.Exception));
                         throw;
                     }
+                    */
+                    return new List<object>();
                 }
             });
             AddWork(tsk);

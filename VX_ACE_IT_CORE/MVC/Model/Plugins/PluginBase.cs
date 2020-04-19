@@ -6,19 +6,20 @@ using System.Threading.Tasks;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
+using VX_ACE_IT_CORE.MVC.Model.Plugins.Interfaces;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Plugins
 {
-    public class PluginBase : BaseAsync<object>
+    public class PluginBase : BaseAsync<object>, IPluginBase
     {
         private Action _initUpdatablesAction;
         private Task _baseUpdater;
 
         protected readonly string ModuleName;
         protected readonly ProcessMethods ProcessMethods;
-        public List<dynamic> UpdatableTypes = new List<dynamic>(); // Use this for init check ?... like evry 15 sec 
+        public readonly List<dynamic> UpdatableTypes = new List<dynamic>(); // Use this for init check ?... like evry 15 sec 
         protected Action InitUpdatablesAction
         {
             get => _initUpdatablesAction;
@@ -41,7 +42,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
             Init(moduleName, initUpdatablesAction);
         }
 
-        protected void Init(string moduleName, Action initUpdatablesAction)
+        public void Init(string moduleName, Action initUpdatablesAction)
         {
             if (moduleName is null || initUpdatablesAction is null) return;
             InitUpdatablesAction = initUpdatablesAction;
@@ -66,7 +67,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                     // There could be problem, with not enough updates for base adress. time/2 should work then.
                     Thread.Sleep(Precision);
                 }
-            });
+            }, TaskCreationOptions.LongRunning);
             _baseUpdater.Start();
         }
     }

@@ -19,7 +19,7 @@ using PluginBase = VX_ACE_IT_CORE.MVC.Model.Plugins.PluginBase;
 
 namespace VX_ACE_IT_CORE.MVC.Controller
 {
-    public class Controller
+    public class Controller : BaseController
     {
         private readonly BaseDebug _debug;
         private readonly GameWindow _gameWindow;
@@ -35,7 +35,7 @@ namespace VX_ACE_IT_CORE.MVC.Controller
 
         public KeyboardListener Keyboard;
 
-        public Controller(BaseDebug debug, Config config)
+        public Controller(IServiceProvider serviceProvider, BaseDebug debug, Config config) : base(serviceProvider)
         {
             this._debug = debug;
             this._notifications = new Model.Notifications.Notifications(debug);

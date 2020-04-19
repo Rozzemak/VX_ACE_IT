@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Async;
+using VX_ACE_IT_CORE.MVC.Model.Plugins.Interfaces;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Plugins

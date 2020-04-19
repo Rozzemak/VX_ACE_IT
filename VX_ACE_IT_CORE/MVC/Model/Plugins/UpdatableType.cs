@@ -13,12 +13,13 @@ using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.GLOBAL_TYPES;
+using VX_ACE_IT_CORE.MVC.Model.Plugins.Interfaces;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
 using Module = System.Reflection.Module;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Plugins
 {
-    public class UpdatableType<T> : BaseAsync<object>
+    public class UpdatableType<T> : BaseAsync<object>, IUpdatableType
     {
         public T Type;
         public Updatable<T> Updatable;
@@ -51,7 +52,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
         }
 
 
-        private Task Init(Dictionary<string, List<List<IntPtr>>> offsets, IEnumerable<string> props)
+        public Task Init(Dictionary<string, List<List<IntPtr>>> offsets, IEnumerable<string> props)
         {
             var tsk = new Task<List<object>>(() =>
             {
@@ -98,7 +99,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                     }
                 }
 
-                if (this.Type.GetType().GetFields().Length < Offsets.Count)
+                if (Type!.GetType().GetFields().Length < Offsets.Count)
                 {
                     // Create OnOffsetUpdate delegate.
                     if(!props.Any())
@@ -112,14 +113,14 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                             MessageTypeEnum.Indifferent));
                 }
                 else
-                if (this.Type.GetType().GetFields().Count() == offsets.Count())
+                if (Type.GetType().GetFields().Count() == offsets.Count())
                 {
                     // Create OnOffsetUpdate delegate.
                     Debug.AddMessage<object>(new Message<object>(
-                        "[" + GetType().Name + "][" + this.Type.GetType().Name + "] all offsets loaded succesfully. (Count): [" + this.Type.GetType().GetFields().Count() + "]",
+                        "[" + GetType().Name + "][" + this.Type.GetType().Name + "] all offsets loaded succesfully. (Count): [" + Type.GetType().GetFields().Count() + "]",
                         MessageTypeEnum.Event));
                 }
-                else if (this.Type.GetType().GetFields().Count() > offsets.Count() && offsets.Any())
+                else if (Type.GetType().GetFields().Count() > offsets.Count() && offsets.Any())
                 {
                     Debug.AddMessage<object>(new Message<object>(
                         "[" + GetType().Name + "][" + this.Type.GetType().Name + "] only some of the offsets were loaded.",
@@ -136,10 +137,10 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                 {
                     //Is called in offsetLoader, because of tolerances.
                     Debug.AddMessage<object>(new Message<object>(
-                        "[User Defined][" + this.Type.GetType().Name + "] type was loaded. (No way to check if type is valid/useful)",
+                        "[User Defined][" + Type.GetType().Name + "] type was loaded. (No way to check if type is valid/useful)",
                         MessageTypeEnum.Indifferent));
                 }
-                return null;
+                return null!;
             });
             AddWork(tsk);
             return tsk;
@@ -260,7 +261,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                 , MessageTypeEnum.Standard));
         }
 
-        private string WriteInpPtrList(List<List<IntPtr>> lists, string name)
+        public string WriteInpPtrList(List<List<IntPtr>> lists, string name)
         {
             //I know this is not nice solution, but what gives. No performance benefit 
             //from optimalisation, since this is just a init.

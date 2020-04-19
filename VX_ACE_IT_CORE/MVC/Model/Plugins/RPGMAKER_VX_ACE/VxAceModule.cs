@@ -13,6 +13,7 @@ using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
 using VX_ACE_IT_CORE.MVC.Model.Offsets;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.GLOBAL_TYPES;
+using VX_ACE_IT_CORE.MVC.Model.Plugins.Interfaces;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
@@ -94,7 +95,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
             InitUpdatablesAction = action;
         }
 
-        // This is useless, can´t think of usefull case.
+        // This is useless, can´t think of useful case.
         public T GetVxNumber<T>(T type) where T : struct
         {
             return new Numeric<T>(type).ActualValue;
