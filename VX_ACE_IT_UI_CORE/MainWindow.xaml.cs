@@ -81,6 +81,10 @@ namespace VX_ACE_IT_UI_CORE
             var window =  _config.Configuration.GetSection(nameof(GameWindowCfg)).Get<GameWindowCfg>();
             WelcomeProcessNameTextBox.Text = process.ProcessName;
             WelcomeResolution.Text = window.Width + "x" + window.Height;
+            foreach (var windowDefaultResolution in window.DefaultResolutions)
+            {
+                WelcomeResolution.Items.Add(new ComboBoxItem(){ Content = windowDefaultResolution });
+            }
             WelcomeBorder.IsChecked = window.IsWindowBorderVisible;
         }
 

@@ -33,11 +33,6 @@
                             <ComboBox Name="WelcomeResolution" materialDesign:HintAssist.Hint="Search"
                                   IsEditable="True" materialDesign:HintAssist.HintOpacity=".26"
                                   ToolTip="4:3 or whatever custom resolution/ratio is supported">
-                                <ComboBoxItem>1920x1080</ComboBoxItem>
-                                <ComboBoxItem>1440x1080</ComboBoxItem>
-                                <ComboBoxItem>1600x900</ComboBoxItem>
-                                <ComboBoxItem>1280x720</ComboBoxItem>
-                                <ComboBoxItem IsSelected="True">800x600</ComboBoxItem>
                             </ComboBox>
                         </DockPanel>
                         <DockPanel Width="180" ToolTip="Whether you would like to keep window border after injection or not.">

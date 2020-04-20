@@ -76,13 +76,17 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
                 //    },
                 //}, this);
 
-                //UndefinedType
-                var playerUpdatable = new OffsetLoader<ExpandoObject>(Debug, ProcessMethods, this, 33, "Player", new List<string>()
-                {
-                }).Updatable;
+                // DefinedType
+                var playerUpdatable = new OffsetLoader<Player>(Debug, ProcessMethods, this, 33).Updatable;
                 AddUpdatable(playerUpdatable);
+                
+                //UndefinedType
+                //var playerUpdatable = new OffsetLoader<ExpandoObject>(Debug, ProcessMethods, this, 33, "Player", new List<string>()
+                 // {
+                //}).Updatable;
+                //AddUpdatable(playerUpdatable);
 
-                var gameUpdatable = new OffsetLoader<Player>(Debug, ProcessMethods, this).Updatable;
+                var gameUpdatable = new OffsetLoader<GameVxAce>(Debug, ProcessMethods, this).Updatable;
                 AddUpdatable(gameUpdatable);
                 
                 Thread.Sleep(1000);

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
+using Newtonsoft.Json;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
@@ -72,8 +73,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                 var path = Directory.GetCurrentDirectory()
                            + "/Offsets/"
                            + _plugin.GetType().Name.Substring(0, _plugin.GetType().Name.Length)
-                           + "/" + typeof(T).Name + ".xml";
-                var xmlSerializer = new XmlSerializer(typeof(T));
+                           + "/" + typeof(T).Name + ".json";
                 var offsets = new Dictionary<string, List<List<IntPtr>>>();
                 var val = IntPtr.Zero;
                 if (!File.Exists(path))
@@ -85,7 +85,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                               + _plugin.GetType().Name.Substring(0, _plugin.GetType().Name.Length) +
                                               "/");
                     var file = File.Create(path);
-                    xmlSerializer.Serialize(file, Type);
+                    file.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Type)));
                     file.Close();
                 }
                 else
@@ -156,7 +156,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
             return task.Result.FirstOrDefault() as Dictionary<string, List<List<IntPtr>>>;
         }
 
-        private async Task<Dictionary<string, List<List<IntPtr>>>> InitOffsetsAsync(string objName, IEnumerable<string> props)
+        private async Task<Dictionary<string, List<List<IntPtr>>>?> InitOffsetsAsync(string objName, IEnumerable<string> props)
         {
             var tolerances = new Dictionary<string, (int, int)>();
             var task = new Task<List<object>>(() =>
@@ -164,8 +164,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                 var path = Directory.GetCurrentDirectory()
                            + "/Offsets/"
                            + _plugin.GetType().Name.Substring(0, _plugin.GetType().Name.Length)
-                           + "/" + objName + ".xml";
-                var xmlSerializer = new JsonFx.Xml.XmlWriter();
+                           + "/" + objName + ".json";
                 var offsets = new Dictionary<string, List<List<IntPtr>>>();
                 var val = IntPtr.Zero;
                 if (!File.Exists(path))
@@ -178,7 +177,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                               "/");
                     var file = File.Create(path);
                     // Low lvl streams. todo: fixme
-                    xmlSerializer.Write(Type, new StreamWriter(new MemoryStream()));
+                    //xmlSerializer.Write(Type, new StreamWriter(new MemoryStream()));
+                    file.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Type)));
                     file.Close();
                 }
                 else
@@ -259,7 +259,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                     reader.Root.Element(field).HasAttributes)
                                 {
                                     offsetlists.Clear();
-                                    foreach (var list in reader.Root.Element(field)?.Attributes())
+                                    foreach (var list in reader.Root.Element(field)?.Attributes()!)
                                     {
                                         if (list.Name.LocalName.ToLower().Contains("tolerance") &&
                                             list.Value != " ")

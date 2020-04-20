@@ -2,6 +2,6 @@
 {
     public class GameProcessCfg
     {
-        public string ProcessName { get; set; }
+        public string? ProcessName { get; set; }
     }
 }
