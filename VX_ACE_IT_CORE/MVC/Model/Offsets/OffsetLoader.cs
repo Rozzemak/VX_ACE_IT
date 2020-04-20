@@ -12,11 +12,14 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
 using VX_ACE_IT_CORE.MVC.Model.Plugins;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE;
+using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Offsets
 {
@@ -85,8 +88,10 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                                               + _plugin.GetType().Name.Substring(0, _plugin.GetType().Name.Length) +
                                               "/");
                     var file = File.Create(path);
-                    file.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Type)));
+                    file.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Type, Formatting.Indented, new JsonSerializerSettings(){Formatting = Formatting.Indented, 
+                        TypeNameHandling = TypeNameHandling.Objects, Converters = new List<JsonConverter>(){new OffsetTypeConverter(Type, typeof(T))}})));
                     file.Close();
+                    //todo: Maybe add bracket attributes to model for serialization and des.
                 }
                 else
                 {
@@ -178,7 +183,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                     var file = File.Create(path);
                     // Low lvl streams. todo: fixme
                     //xmlSerializer.Write(Type, new StreamWriter(new MemoryStream()));
-                    file.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Type)));
+                    file.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Type, Formatting.Indented, new JsonSerializerSettings()
+                        {Formatting = Formatting.Indented, TypeNameHandling = TypeNameHandling.Objects, Converters = new List<JsonConverter>(){new OffsetTypeConverter(Type, typeof(T))}})));
                     file.Close();
                 }
                 else
@@ -326,5 +332,71 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
         }
 
 
+        public class OffsetTypeConverter : JsonConverter
+        {
+            private readonly Type[] _types;
+            private readonly T _type;
+
+            public OffsetTypeConverter(T type, params Type[] types)
+            {
+                _types = types;
+                _type = type;
+            }
+
+            public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+            {
+                JToken t = JToken.FromObject(value!);
+
+                if (t.Type != JTokenType.Object)
+                {
+                    t.WriteTo(writer);
+                }
+                else
+                {
+                    var o = (JObject)t;
+                    var offsetObj = new JObject();
+                    foreach (var prop in o.Properties())
+                    {
+                        var offsetParams = new JObject
+                        {
+                            ["Type"] = GetFriendlyName(_type!.GetType().GetField(prop.Name).FieldType.GenericTypeArguments.LastOrDefault()),
+                            ["Tolerance"] = $"0 {int.MaxValue}",
+                            ["Offsets"] = new JArray(),
+                        };
+                        offsetObj[prop.Name] = offsetParams;
+                    }
+                    offsetObj.WriteTo(writer);
+                }
+            }
+
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            {
+                throw new NotImplementedException("Unnecessary because CanRead is false. The type will skip the converter.");
+            }
+
+            public override bool CanRead
+            {
+                get { return false; }
+            }
+
+            public override bool CanConvert(Type objectType)
+            {
+                return _types.Any(t => t == objectType);
+            }
+        }
+        
+        public static string GetFriendlyName(Type type)
+        {
+            if (type.IsGenericType)
+            {
+                var name = type.Name.Substring(0, type.Name.IndexOf('`'));
+                var types = string.Join(",", type.GetGenericArguments().Select(GetFriendlyName));
+                return $"{name}<{types}>";
+            }
+            else
+            {
+                return type.Name;
+            }
+        }
     }
 }
