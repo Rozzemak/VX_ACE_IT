@@ -16,7 +16,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
 
         public ProcessMethods(GameProcess gameProcess)
         {
-            this._gameProcess = gameProcess;
+            _gameProcess = gameProcess;
         }
 
         /// <summary>

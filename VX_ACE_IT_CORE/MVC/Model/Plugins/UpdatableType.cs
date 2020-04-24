@@ -37,8 +37,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
         public UpdatableType(BaseDebug debug, ProcessMethods processMethods, T type, Dictionary<string, List<List<IntPtr>>> offsets, PluginBase module = null, IEnumerable<string> props = null)
             : base(debug, processMethods._gameProcess)
         {
-            this.Type = type;
-            this._processMethods = processMethods;
+            Type = type;
+            _processMethods = processMethods;
             Init(offsets, props);
             if (module != null) BeginUpdatePrimitives(module);
 
@@ -47,17 +47,18 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
         public UpdatableType(BaseDebug debug, ProcessMethods processMethods, T type, PluginBase module = null, IEnumerable<string> props = null)
             : base(debug, processMethods._gameProcess)
         {
-            this.Type = type;
-            this._processMethods = processMethods;
+            Type = type;
+            _processMethods = processMethods;
         }
 
 
-        public Task Init(Dictionary<string, List<List<IntPtr>>> offsets, IEnumerable<string> props)
+        public Task Init(Dictionary<string, List<List<IntPtr>>> offsets, IEnumerable<string>? props)
         {
             var tsk = new Task<List<object>>(() =>
             {
                 //todo: Impl. non-defined types field detection.
-                if (!(this.Type is ExpandoObject))
+                var enumerable = props as string[] ?? props.ToArray();
+                if (!(Type is ExpandoObject))
                     foreach (var fieldInfo in Type.GetType().GetFields())
                     {
                         // Create plugin config, where will be desearialised class.
@@ -71,19 +72,19 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                                 Offsets.Add(fieldInfo, intPtrs);
                         }
                         // Something like this. Just create usable config file for this.
-                        this.Updatable = new Updatable<T>(this.Type);
+                        Updatable = new Updatable<T>(Type);
                     }
                 else
                 {
                     // Will use names of loaded offsets if none field names are specified.
                     // You will not see any null offsets.
-                    if (!props.Any())
+                    if (!enumerable.Any())
                     {
                         props = (offsets as IDictionary<string, List<List<IntPtr>>>)?.Keys;
                     }
-                    this.Updatable = new Updatable<T>(props);
-                    this.Type = Updatable.GetUpdatable;
-                    var dictionary = (IDictionary<string, object>)(this.Type);
+                    Updatable = new Updatable<T>(enumerable);
+                    Type = Updatable.GetUpdatable;
+                    var dictionary = (IDictionary<string, object>)Type!;
                     foreach (var dKey in dictionary.Keys)
                     {
                         // Create plugin config, where will be desearialised class.
@@ -102,14 +103,14 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                 if (Type!.GetType().GetFields().Length < Offsets.Count)
                 {
                     // Create OnOffsetUpdate delegate.
-                    if(!props.Any())
+                    if(!enumerable.Any())
                         Debug.AddMessage<object>(new Message<object>(
-                        "[" + GetType().Name + "][" + this.Type.GetType().Name + "] more offsets loaded than there are fields in the class. Check your config for additional lines.",
+                        "[" + GetType().Name + "][" + Type.GetType().Name + "] more offsets loaded than there are fields in the class. Check your config for additional lines.",
                         MessageTypeEnum.Indifferent));
                     else
-                    if(props?.Count() < Offsets.Count)
+                    if(enumerable?.Count() < Offsets.Count)
                         Debug.AddMessage<object>(new Message<object>(
-                            "[" + GetType().Name + "][" + this.Type.GetType().Name + "(UserDefined)] more offsets loaded than there are fields in the class. Check your config for additional lines.",
+                            "[" + GetType().Name + "][" + Type.GetType().Name + "(UserDefined)] more offsets loaded than there are fields in the class. Check your config for additional lines.",
                             MessageTypeEnum.Indifferent));
                 }
                 else
@@ -117,20 +118,20 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                 {
                     // Create OnOffsetUpdate delegate.
                     Debug.AddMessage<object>(new Message<object>(
-                        "[" + GetType().Name + "][" + this.Type.GetType().Name + "] all offsets loaded succesfully. (Count): [" + Type.GetType().GetFields().Count() + "]",
+                        "[" + GetType().Name + "][" + Type.GetType().Name + "] all offsets loaded succesfully. (Count): [" + Type.GetType().GetFields().Count() + "]",
                         MessageTypeEnum.Event));
                 }
                 else if (Type.GetType().GetFields().Count() > offsets.Count() && offsets.Any())
                 {
                     Debug.AddMessage<object>(new Message<object>(
-                        "[" + GetType().Name + "][" + this.Type.GetType().Name + "] only some of the offsets were loaded.",
+                        "[" + GetType().Name + "][" + Type.GetType().Name + "] only some of the offsets were loaded.",
                         MessageTypeEnum.Indifferent));
                     //Offsets.TryGetValue(typeof(Player).GetField("Hp"), out var list);
                 }
                 else if (!offsets.Any())
                 {
                     Debug.AddMessage<object>(new Message<object>(
-                        "[" + GetType().Name + "][" + this.Type.GetType().Name + "] none offsets were loaded.",
+                        "[" + GetType().Name + "][" + Type.GetType().Name + "] none offsets were loaded.",
                         MessageTypeEnum.Error));
                 }// else if (offsets.Count > 0) WriteLoadedOffsets();
                 if (offsets.Any() && ((Type as ExpandoObject) != null))
@@ -158,18 +159,18 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
         {
             AddWork(new Task<List<object>>(() =>
             {
-                Thread.Sleep(this.Precision);
+                Thread.Sleep(Precision);
                 if (pluginBase.ModuleBaseAddr == IntPtr.Zero) Debug.AddMessage<object>(new Message<object>("Module address is not set. Engine values cannot be read.", MessageTypeEnum.Error));
                 var occurences = new List<KeyValuePair<IntPtr, int>>();
                 while (true)
                 {
                     
                     var readAddressVal = 0; // Not used I know, but can be moved to field ? or even as Type Field pair
-                    foreach (var keyPar in Offsets)
+                    foreach (var (key, value) in Offsets)
                     {
-                        var keyName = (keyPar.Key as FieldInfo) == null ? keyPar.Key.ToString() : ((FieldInfo) keyPar.Key).Name;
+                        var keyName = (key as FieldInfo) == null ? key.ToString() : ((FieldInfo) key).Name;
                         if (ToleranceDict.TryGetValue(keyName, out var toleranceTuple))
-                            foreach (var offSetList in keyPar.Value)
+                            foreach (var offSetList in value)
                             {
                                 readAddressVal = _processMethods.Rpm<int>(pluginBase.ModuleBaseAddr, offSetList, out var valAdress);
                                 if (readAddressVal > toleranceTuple.Item1 && readAddressVal <= toleranceTuple.Item2)
@@ -181,7 +182,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                                 }
                             }
                         else
-                            foreach (var offSetList in keyPar.Value)
+                            foreach (var offSetList in value)
                             {
                                 readAddressVal = _processMethods.Rpm<int>(pluginBase.ModuleBaseAddr, offSetList, out var valAdress);
                                 if (valAdress != IntPtr.Zero)
@@ -202,7 +203,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
                                 var dict = Type as IDictionary<string, object>;
                                 if (dict == null)
                                 {
-                                    Type.GetType().GetField(keyName).SetValue(Type,
+                                    Type!.GetType().GetField(keyName).SetValue(Type,
                                         new KeyValuePair<IntPtr, Numeric<int>>(
                                             grouped.FirstOrDefault().Key.Key,
                                             new Numeric<int>(grouped.FirstOrDefault().Key.Value)));
@@ -231,7 +232,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
 
         public void SetValue<TP>(string fieldName, TP t) where TP : struct
         {
-            _processMethods.Wpm(((dynamic)Type.GetType().GetField(fieldName).GetValue(Type)).Key, t);
+            _processMethods.Wpm(((dynamic)Type!.GetType().GetField(fieldName).GetValue(Type)).Key, t);
         }
 
         public string ToDebugString(IDictionary<object, List<List<IntPtr>>> dictionary)
@@ -257,7 +258,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
         {
             var dict = string.Join(";", Offsets);
             Debug.AddMessage<object>(new Message<object>(
-                "\n--[Init][" + this.Type.GetType().Name + "]--" + ToDebugString(Offsets) + "\n------------------"
+                "\n--[Init][" + Type.GetType().Name + "]--" + ToDebugString(Offsets) + "\n------------------"
                 , MessageTypeEnum.Standard));
         }
 

@@ -14,9 +14,9 @@ namespace VX_ACE_IT_CORE.Debug
 
         public ConsoleSettings(Encoding encoding,int bufferWidth= 100, int bufferHeight = Int16.MaxValue-2)
         {
-            this._encoding = encoding;
-            this._bufferWidth = bufferWidth;
-            this._bufferHeight = bufferHeight;
+            _encoding = encoding;
+            _bufferWidth = bufferWidth;
+            _bufferHeight = bufferHeight;
             ApplyConsoleSettings();
         }
 

@@ -13,12 +13,12 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
     {
 
         // Make service coll public, so we can grab it elsewhere. (Temporary ?)
-        public List<PluginBase> Plugins => this.ServiceCollection;
+        public List<PluginBase> Plugins => ServiceCollection;
 
         public PluginService(BaseDebug debug, GameProcess.GameProcess gameProcess, List<PluginBase> pluginBases, int precision = 33)
             : base(debug, gameProcess, precision)
         {
-            this.ServiceCollection = pluginBases;
+            ServiceCollection = pluginBases;
             DebugTest();
         }
 

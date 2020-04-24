@@ -15,7 +15,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Notifications
         public Notifications(BaseDebug baseDebug)
         {
             NotificationManager = new NotificationManager(){};
-            this._baseDebug = baseDebug;
+            _baseDebug = baseDebug;
             baseDebug.OnMessageAdded += OnMessageAdded;
         }
 

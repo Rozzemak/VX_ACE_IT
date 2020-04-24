@@ -50,7 +50,7 @@ namespace VX_ACE_IT_UI_CORE
                
                 if (!_config.Configuration.GetSection(nameof(AppCfg)).Get<AppCfg>().IsInitial)
                 {
-                    App.Current.Dispatcher.Invoke(() =>
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
                         CloseAllDialogs();
                         RootLogicStackPanel.Visibility = Visibility.Visible;
@@ -68,7 +68,7 @@ namespace VX_ACE_IT_UI_CORE
             _processListDefaultItem = ProcessListItemDefault;
 
             // Just call the method to init found proceses.
-            WelcomeProcessNameTextBox_OnTextChanged(this.WelcomeProcessNameTextBox, null);
+            WelcomeProcessNameTextBox_OnTextChanged(WelcomeProcessNameTextBox, null);
 
             InitUiFromConfig();
         }
@@ -120,7 +120,7 @@ namespace VX_ACE_IT_UI_CORE
 
         private void ShowWelcomeScreen()
         {
-            App.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 RootLogicStackPanel.Visibility = Visibility.Collapsed;
                 DimmGrid.Visibility = Visibility.Visible;
@@ -137,7 +137,7 @@ namespace VX_ACE_IT_UI_CORE
 
         private void CloseAllDialogs()
         {
-            App.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 WelcomeStackPanel.Visibility = Visibility.Collapsed;
                 DimmGrid.Visibility = Visibility.Collapsed;
@@ -147,7 +147,7 @@ namespace VX_ACE_IT_UI_CORE
 
         private void ShowDefaultRootLogicStackPanel()
         {
-            App.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 RootLogicStackPanel.Visibility = Visibility.Visible;
                 ForceExitButtonsColors();
@@ -186,7 +186,7 @@ namespace VX_ACE_IT_UI_CORE
 
         private void ExitMinimizeButton_Click(object sender, RoutedEventArgs e)
         {
-            App.Current.MainWindow.WindowState = WindowState.Minimized;
+            Application.Current.MainWindow.WindowState = WindowState.Minimized;
         }
 
         private void ForceExitButtonsColors()
@@ -205,9 +205,9 @@ namespace VX_ACE_IT_UI_CORE
 
         private void ExitCloseButton_Click(object sender, RoutedEventArgs e)
         {
-            App.Current.MainWindow.Visibility = Visibility.Collapsed;
+            Application.Current.MainWindow.Visibility = Visibility.Collapsed;
 
-            this.Dispatcher.Invoke(() =>
+            Dispatcher.Invoke(() =>
             {
                 //_core._controller?.GameOverlayPlugin?.Overlay?.BeforeDispose();
             });

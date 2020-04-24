@@ -22,13 +22,13 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES
         public Numeric(T value, bool actualValue = false)
         {
             if (!actualValue)
-                this.EngineValue = value;
-            else this.EngineValue = (value as dynamic) * 2 + 1;
+                EngineValue = value;
+            else EngineValue = (value as dynamic) * 2 + 1;
         }
 
         public override string ToString()
         {
-            var s = GetType().GetFields().Aggregate("{", (current, field) => current + ("[" + field.Name + ":" + this.GetType().GetField(field.Name).GetValue(this) + "]"));
+            var s = GetType().GetFields().Aggregate("{", (current, field) => current + ("[" + field.Name + ":" + GetType().GetField(field.Name).GetValue(this) + "]"));
 
             s = GetType().GetMethods().Where(info => info.IsSpecialName).Aggregate(s, (current, method) => current + ("[" + method.Name + ":" + GetType().GetMethod(method.Name)?.Invoke(this, method?.GetParameters()) + "]"));
 

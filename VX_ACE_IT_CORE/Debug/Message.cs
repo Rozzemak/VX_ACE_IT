@@ -28,8 +28,8 @@ namespace VX_ACE_IT_CORE.Debug
 
         public Message(T messageContent, MessageTypeEnum messageType = MessageTypeEnum.Standard)
         {
-            this.MessageContent = messageContent;
-            this.MessageType = messageType;
+            MessageContent = messageContent;
+            MessageType = messageType;
         }
 
     }

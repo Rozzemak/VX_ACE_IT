@@ -8,7 +8,7 @@ namespace VX_ACE_IT_CORE.MVC.Controller
 
         public BaseController(IServiceProvider serviceProvider)
         {
-            this.ServiceProvider = serviceProvider;
+            ServiceProvider = serviceProvider;
         }
         
     }

@@ -42,7 +42,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
         public OffsetLoader(BaseDebug debug, ProcessMethods processMethods, PluginBase plugin, int precision = 33, string objName = "", IEnumerable<string> props = null)
         : base(debug, processMethods._gameProcess, precision)
         {
-            this._plugin = plugin;
+            _plugin = plugin;
             if (objName == "")
             {
                 Type = (T)Activator.CreateInstance(typeof(T));
@@ -359,8 +359,10 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                     {
                         var offsetParams = new JObject
                         {
+                            ["Name"] = prop.Name,
                             ["Type"] = GetFriendlyName(_type!.GetType().GetField(prop.Name).FieldType.GenericTypeArguments.LastOrDefault()),
-                            ["Tolerance"] = $"0 {int.MaxValue}",
+                                //todo: Do a plugin based json config, covering tolerances and plugin specific config.
+                            ["Tolerance"] = $"1 {int.MaxValue}",
                             ["Offsets"] = new JArray(),
                         };
                         offsetObj[prop.Name] = offsetParams;
@@ -369,15 +371,29 @@ namespace VX_ACE_IT_CORE.MVC.Model.Offsets
                 }
             }
 
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
             {
+                JToken t = JToken.FromObject(existingValue!);
+                var obj = Activator.CreateInstance<T>();
+
+                foreach (var fieldInfo in obj!.GetType().GetFields())
+                {
+                    //Get type as KeyVal(obj,obj) cast to it, if null then dont set offsets.
+                    if (fieldInfo.FieldType == typeof(KeyValuePair) || fieldInfo.FieldType == typeof(KeyValuePair<IntPtr, object>))
+                    {
+                        fieldInfo.SetValue(fieldInfo, new KeyValuePair<IntPtr,object>(IntPtr.Zero, null!));
+                    }
+                    
+                }
+
+                return obj!;
                 throw new NotImplementedException("Unnecessary because CanRead is false. The type will skip the converter.");
             }
 
-            public override bool CanRead
-            {
-                get { return false; }
-            }
+            /// <summary>
+            /// We can do proper validation etc here.
+            /// </summary>
+            public override bool CanRead => true;
 
             public override bool CanConvert(Type objectType)
             {

@@ -32,7 +32,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
                 throw new ArgumentNullException(nameof(Process));
             }
 
-            this._process = process;
+            _process = process;
         }
 
         public Process Process
@@ -190,9 +190,9 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameProcess
     {
         public Module(string moduleName, IntPtr baseAddress, uint size)
         {
-            this.ModuleName = moduleName;
-            this.BaseAddress = baseAddress;
-            this.Size = size;
+            ModuleName = moduleName;
+            BaseAddress = baseAddress;
+            Size = size;
         }
 
         public string ModuleName { get; set; }

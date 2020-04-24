@@ -6,7 +6,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.Interfaces
 {
     public interface IUpdatableType
     {
-        public Task Init(Dictionary<string, List<List<IntPtr>>> offsets, IEnumerable<string> props);
+        public Task Init(Dictionary<string, List<List<IntPtr>>> offsets, IEnumerable<string>? props);
 
         public void Init(Dictionary<string, List<List<IntPtr>>> offsets, IEnumerable<string> props, PluginBase module);
 

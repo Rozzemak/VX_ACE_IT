@@ -28,9 +28,9 @@ namespace VX_ACE_IT_CORE.MVC.Model.Async
         /// <param name="precision">Is used for thread sleep. Lover -> faster but needs more resources.</param>
         protected BaseAsync(BaseDebug debug, GameProcess.GameProcess gameProcess, int precision = 33)
         {
-            this.Precision = precision;
-            this.Debug = debug;
-            this.GameProcess = gameProcess;
+            Precision = precision;
+            Debug = debug;
+            GameProcess = gameProcess;
             DoWork();
         }
 
@@ -52,7 +52,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Async
                             var faulted = work.IsFaulted;
                             if (faulted && ex != null)
                             {
-                                await Debug.AddMessage_Async<object>(new Message<object>("[" + this.GetType().Name + "]  request faulted." + " |TaskID[" + work.Id + "]"
+                                await Debug.AddMessage_Async<object>(new Message<object>("[" + GetType().Name + "]  request faulted." + " |TaskID[" + work.Id + "]"
                                                                                          + " |TaskResult[" + work?.Exception?.Message + "]", MessageTypeEnum.Error)).ConfigureAwait(false);
                                 await Debug.AddMessage_Async<object>(new Message<object>(ex.Data, MessageTypeEnum.Exception)).ConfigureAwait(false);
                                 Works.TryTake(out work);
@@ -70,7 +70,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Async
 
         protected void AddWork(Task<List<object>> tasks)
         {
-            this.Works.Add(tasks);
+            Works.Add(tasks);
         }
 
         protected T ResultHandler(Task<T> task)
