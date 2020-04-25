@@ -26,9 +26,9 @@ namespace VX_ACE_IT_CORE.MVC.Controller
         private readonly Model.Notifications.Notifications _notifications;
 
         public readonly GameProcess GameProcess;
-        public ProcessMethods ProcessMethods;
+        public ProcessMethods? ProcessMethods;
 
-        public PluginService PluginService;
+        public PluginService? PluginService;
 
         //public GameOverlayPlugin GameOverlayPlugin;
 
@@ -61,7 +61,7 @@ namespace VX_ACE_IT_CORE.MVC.Controller
 
         private void InitPlugins()
         {
-            this.PluginService = new PluginService(this._debug, this.GameProcess, new List<PluginBase>() { new VxAceModule(this._debug, ProcessMethods, null) }, 33);
+            this.PluginService = new PluginService(this._debug, this.GameProcess, new List<PluginBase>() { new VxAceModule(this._debug, ServiceProvider, ProcessMethods, null) }, 33);
         }
 
         private void InitOverlay()

@@ -15,17 +15,19 @@ using VX_ACE_IT_CORE.MVC.Model.Offsets;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.GLOBAL_TYPES;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.Interfaces;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
+using VX_ACE_IT_CORE.MVC.Model.TargetApp.Interfaces;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE
 {
     public class VxAceModule : PluginBase
     {
-        public VxAceModule(BaseDebug baseDebug, ProcessMethods processMethods, Action updatables, int precision = 33)
-        : base(baseDebug, processMethods, "RGSS301.dll", updatables, precision)
+        public VxAceModule(BaseDebug baseDebug, IServiceProvider serviceProvider, ProcessMethods processMethods, Action updatables, int precision = 33)
+        : base(baseDebug, serviceProvider, processMethods, "RGSS301.dll", updatables, precision)
         {
             if (updatables is null)
             {
                 InitUpdatables();
+                
             }
         }
 

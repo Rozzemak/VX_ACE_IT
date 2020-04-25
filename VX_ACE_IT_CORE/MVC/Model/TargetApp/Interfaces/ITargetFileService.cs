@@ -8,6 +8,6 @@ namespace VX_ACE_IT_CORE.MVC.Model.TargetApp.Interfaces
     {
         Task<IFileInfo> GetTargetFileAsync(string pathToTarget);
 
-        Task<bool> SearchForRelativeFileAsync(string fileName, bool recursive = false);
+        Task<bool> SearchForRelativeFileAsync(IFileInfo targetFile, string fileName, bool recursive = false);
     }
 }

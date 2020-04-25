@@ -18,6 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Flurl" Version="3.0.0-pre3" />
+    <PackageReference Include="Flurl.Http" Version="3.0.0-pre3" />
     <PackageReference Include="JsonFx" Version="2.0.1209.2802" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.3" />
