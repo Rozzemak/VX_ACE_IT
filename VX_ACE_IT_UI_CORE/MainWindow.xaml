@@ -30,9 +30,16 @@
                         </DockPanel>
                         <DockPanel Width="180">
                             <Label>Resolution:</Label>
-                            <ComboBox Name="WelcomeResolution" materialDesign:HintAssist.Hint="Search"
+                            <ComboBox Name="WelcomeResolution" materialDesign:HintAssist.Hint="Choose"
                                   IsEditable="True" materialDesign:HintAssist.HintOpacity=".26"
                                   ToolTip="4:3 or whatever custom resolution/ratio is supported">
+                            </ComboBox>
+                        </DockPanel>
+                        <DockPanel Width="180">
+                            <Label>Plugin:</Label>
+                            <ComboBox Name="WelcomePlugin" materialDesign:HintAssist.Hint="Choose"
+                                      IsEditable="True" materialDesign:HintAssist.HintOpacity=".26"
+                                      ToolTip="Plugin to use with provided target application">
                             </ComboBox>
                         </DockPanel>
                         <DockPanel Width="180" ToolTip="Whether you would like to keep window border after injection or not.">

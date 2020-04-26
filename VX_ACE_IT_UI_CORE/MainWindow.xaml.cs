@@ -77,13 +77,18 @@ namespace VX_ACE_IT_UI_CORE
         {
             //_config.LoadXmlConfig();
 
-            var process =  _config.Configuration.GetSection(nameof(GameProcessCfg)).Get<GameProcessCfg>();
+            var pluginsCfg =  _config.Configuration.GetSection(nameof(PluginsCfg)).Get<PluginsCfg>();
             var window =  _config.Configuration.GetSection(nameof(GameWindowCfg)).Get<GameWindowCfg>();
-            WelcomeProcessNameTextBox.Text = process.ProcessName;
+            WelcomeProcessNameTextBox.Text = pluginsCfg.DefaultProcessName;
             WelcomeResolution.Text = window.Width + "x" + window.Height;
             foreach (var windowDefaultResolution in window.DefaultResolutions)
             {
                 WelcomeResolution.Items.Add(new ComboBoxItem(){ Content = windowDefaultResolution });
+            }
+            WelcomePlugin.Text = pluginsCfg.DefaultPluginName;
+            foreach (var plugin in pluginsCfg.Plugins)
+            {
+                WelcomePlugin.Items.Add(new ComboBoxItem(){ Content = plugin.Name });
             }
             WelcomeBorder.IsChecked = window.IsWindowBorderVisible;
         }
