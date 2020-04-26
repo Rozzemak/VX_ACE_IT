@@ -27,9 +27,9 @@ namespace VX_ACE_IT_CORE.MVC.Controller
         private readonly Model.Notifications.Notifications _notifications;
 
         public readonly GameProcess GameProcess;
-        public ProcessMethods ProcessMethods;
+        public ProcessMethods? ProcessMethods;
 
-        public PluginService PluginService;
+        public PluginService? PluginService;
 
         //public GameOverlayPlugin GameOverlayPlugin;
 
@@ -37,9 +37,9 @@ namespace VX_ACE_IT_CORE.MVC.Controller
 
         public Controller(IServiceProvider serviceProvider, BaseDebug debug, Config config) : base(serviceProvider)
         {
-            _debug = debug;
-            _notifications = new Model.Notifications.Notifications(debug);
-            _config = config;
+            this._debug = debug;
+            this._notifications = new Model.Notifications.Notifications(debug);
+            this._config = config;
             GameProcess = new GameProcess(debug);
             _gameWindow = new GameWindow(debug, config, GameProcess);
             GameProcess.OnNoProcessFound += GameProcessOnOnNoProcessFound;
@@ -62,7 +62,7 @@ namespace VX_ACE_IT_CORE.MVC.Controller
 
         private void InitPlugins()
         {
-            PluginService = new PluginService(_debug, GameProcess, new List<PluginBase>() { new VxAceModule(_debug, ProcessMethods, null) }, 33);
+            this.PluginService = new PluginService(this._debug, this.GameProcess, new List<PluginBase>() { new VxAceModule(this._debug,  ServiceProvider, ProcessMethods, null) }, 33);
         }
 
         private void InitOverlay()

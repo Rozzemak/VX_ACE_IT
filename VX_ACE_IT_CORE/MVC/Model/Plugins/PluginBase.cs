@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC.Model.GameProcess;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.Interfaces;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
+using VX_ACE_IT_CORE.MVC.Model.TargetApp.Interfaces;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Plugins
 {
@@ -33,9 +35,21 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
 
         public IntPtr ModuleBaseAddr;
 
-        public PluginBase(BaseDebug baseDebug, ProcessMethods processMethods, string moduleName, Action initUpdatablesAction, int precision = 29)
+
+        #region PublicServices
+        public readonly ITargetFileService FileService;
+        public readonly ITargetPatchService PatchService;
+        public readonly ITargetUnpackerService UnpackerService;
+        public readonly ITargetVersionCheckService VersionCheckService;
+        #endregion
+        
+        protected PluginBase(BaseDebug baseDebug, IServiceProvider serviceProvider, ProcessMethods processMethods, string moduleName, Action initUpdatablesAction, int precision = 29)
         : base(baseDebug, processMethods._gameProcess, precision)
         {
+            FileService = serviceProvider.GetService<ITargetFileService>();
+            PatchService = serviceProvider.GetService<ITargetPatchService>();
+            UnpackerService = serviceProvider.GetService<ITargetUnpackerService>();
+            VersionCheckService = serviceProvider.GetService<ITargetVersionCheckService>();
             ProcessMethods = processMethods;
             ModuleName = moduleName;
             UpdateBaseAddress();

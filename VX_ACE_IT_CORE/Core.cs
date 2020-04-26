@@ -7,6 +7,8 @@ using VX_ACE_IT_CORE.MVC.Model.Async;
 using VX_ACE_IT_CORE.MVC.Model.Plugins;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.Interfaces;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE;
+using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_SERVICES;
+using VX_ACE_IT_CORE.MVC.Model.TargetApp.Interfaces;
 
 namespace VX_ACE_IT_CORE
 {
@@ -23,6 +25,8 @@ namespace VX_ACE_IT_CORE
 
         private void SetupServices(IServiceCollection services)
         {
+            services.AddScoped<ITargetFileService, TargetFileService>();
+            services.AddScoped<ITargetUnpackerService, TargetUnpackerService>();
             services.AddScoped<IPluginBase, VxAceModule>();
             services.AddScoped<IUpdatableType, UpdatableType<BaseAsync<object>>>();
         }
