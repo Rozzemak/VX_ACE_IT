@@ -29,7 +29,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.TargetApp.Interfaces
         /// <returns></returns>
         Task<bool> UnpackTargetExternalAsync(IFileInfo fileToUnpack, Uri unpackerUrl, string unpackerParams = "", bool forceWithoutParams = false);
         
-        Task<bool> DownloadUnpackerAsync(Uri unpacker);
+        Task<bool> DownloadUnpackerAsync(Uri unpacker, string? localPath = null);
         
         /// <summary>
         /// Downloads all unpackers with defined Uri ands saves them locally.

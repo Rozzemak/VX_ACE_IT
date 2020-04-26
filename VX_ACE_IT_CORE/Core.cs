@@ -26,6 +26,7 @@ namespace VX_ACE_IT_CORE
         private void SetupServices(IServiceCollection services)
         {
             services.AddScoped<ITargetFileService, TargetFileService>();
+            services.AddScoped<ITargetUnpackerService, TargetUnpackerService>();
             services.AddScoped<IPluginBase, VxAceModule>();
             services.AddScoped<IUpdatableType, UpdatableType<BaseAsync<object>>>();
         }
