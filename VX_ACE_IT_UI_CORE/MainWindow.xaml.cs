@@ -180,8 +180,8 @@ namespace VX_ACE_IT_UI_CORE
             }
             if (width != 0 && height != 0)
             {
-                var processCfg = _config.Configuration.GetSection(nameof(GameProcessCfg)).Get<GameProcessCfg>();
-                _core._controller.GameProcess.FetchProcess(processCfg.ProcessName);
+                var processCfg = _config.Configuration.GetSection(nameof(PluginsCfg)).Get<PluginsCfg>();
+                _core._controller.GameProcess.FetchProcess(processCfg.DefaultProcessName);
             }
             else
             {

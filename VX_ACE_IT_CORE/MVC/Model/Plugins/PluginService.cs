@@ -1,5 +1,6 @@
 ﻿
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using VX_ACE_IT_CORE.Debug;
@@ -15,10 +16,10 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins
         // Make service coll public, so we can grab it elsewhere. (Temporary ?)
         public List<PluginBase> Plugins => ServiceCollection;
 
-        public PluginService(BaseDebug debug, GameProcess.GameProcess gameProcess, List<PluginBase> pluginBases, int precision = 33)
+        public PluginService(BaseDebug debug, GameProcess.GameProcess gameProcess, List<IPluginBase> pluginBases, int precision = 33)
             : base(debug, gameProcess, precision)
         {
-            ServiceCollection = pluginBases;
+            ServiceCollection = pluginBases.Cast<PluginBase>().ToList();
             DebugTest();
         }
 

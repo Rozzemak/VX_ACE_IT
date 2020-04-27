@@ -15,6 +15,7 @@ using VX_ACE_IT_CORE.MVC.Model.Plugins.GLOBAL_TYPES;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
 using VX_ACE_IT_CORE.MVC._Common;
+using VX_ACE_IT_CORE.MVC.Model.Plugins.Interfaces;
 using PluginBase = VX_ACE_IT_CORE.MVC.Model.Plugins.PluginBase;
 
 namespace VX_ACE_IT_CORE.MVC.Controller
@@ -62,7 +63,7 @@ namespace VX_ACE_IT_CORE.MVC.Controller
 
         private void InitPlugins()
         {
-            this.PluginService = new PluginService(this._debug, this.GameProcess, new List<PluginBase>() { new VxAceModule(this._debug,  ServiceProvider, ProcessMethods, null) }, 33);
+            this.PluginService = new PluginService(this._debug, this.GameProcess, new List<IPluginBase>() { new VxAceModule(this._debug,  ServiceProvider, ProcessMethods, null) }, 33);
         }
 
         private void InitOverlay()
