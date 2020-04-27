@@ -28,9 +28,12 @@ namespace VX_ACE_IT_CORE.MVC.Model.TargetApp.Interfaces
         /// <param name="forceWithoutParams">Ignore default params in appsettings</param>
         /// <returns></returns>
         Task<bool> UnpackTargetExternalAsync(IFileInfo fileToUnpack, Uri unpackerUrl, string unpackerParams = "", bool forceWithoutParams = false);
-        
-        Task<bool> DownloadUnpackerAsync(Uri unpacker, string? localPath = null);
-        
+
+        Task<bool> DownloadUnpackerAsync(Uri? unpacker, string? unpackerName, string? localPath,
+            bool useDefaultPath = false);
+
+        public Task<bool> DownloadUnpackerAsync(string unpackerName);
+
         /// <summary>
         /// Downloads all unpackers with defined Uri ands saves them locally.
         /// </summary>

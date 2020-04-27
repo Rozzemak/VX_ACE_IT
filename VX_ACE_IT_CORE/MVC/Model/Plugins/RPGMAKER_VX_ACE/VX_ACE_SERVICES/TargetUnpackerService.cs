@@ -35,25 +35,25 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_SERVICES
             throw new NotImplementedException();
         }
 
-        public async Task<bool> DownloadUnpackerAsync(Uri unpacker, string? localPath)
+        public async Task<bool> DownloadUnpackerAsync(Uri? unpacker, string? unpackerName, string? localPath, bool useDefaultPath = true)
         {
-            var result = await unpacker.DownloadFileAsync(localPath ?? "Unpackers\\" + PluginCfg.Name + "\\" + 
-                                                          PluginCfg.UnpackersCfg.Unpackers.FirstOrDefault(cfg => cfg.Uri.Equals(unpacker)).Name);
-            return !result.Equals(string.Empty);
+            var result = await _fileService.DownloadFileAsync(unpacker!, (!useDefaultPath ? localPath : null ) ?? PluginsCfg.DefaultPath + "\\" + PluginsCfg.DefaultUnpackerPath + "\\" + PluginCfg.Name + "\\" + 
+                                                          PluginCfg.UnpackersCfg.Unpackers.FirstOrDefault(cfg => cfg.Name.Equals(unpackerName))?.Name);
+            return result;
         }
         
-        public async Task<bool> DownloadUnpackerAsync(string unpackerName, string? localPath)
+        public async Task<bool> DownloadUnpackerAsync(string unpackerName)
         {
-            var result = await PluginCfg.UnpackersCfg.Unpackers.FirstOrDefault(cfg => cfg.Name.Equals(unpackerName)).Uri
-                .DownloadFileAsync(localPath ?? "Unpackers\\" + PluginCfg.Name + "\\" + 
-                PluginCfg.UnpackersCfg.Unpackers.FirstOrDefault(cfg => cfg.Name.Equals(unpackerName)).Name);
-            return !result.Equals(string.Empty);
+            var unpacker = PluginCfg.UnpackersCfg.Unpackers.FirstOrDefault(cfg => cfg.Name.Equals(unpackerName));
+            var result = await _fileService.DownloadFileAsync(unpacker.Uri, PluginsCfg.DefaultPath + "\\" + PluginsCfg.DefaultUnpackerPath + "\\" + PluginCfg.Name + "\\" + 
+                                                                            unpacker.Name);
+            return result;
         }
 
         public async Task<bool> DownloadDefaultUnpackersAsync()
         {
             var results = PluginCfg.UnpackersCfg.Unpackers.Select(unpacker =>
-                unpacker.Uri.DownloadFileAsync("Unpackers\\" + PluginCfg.Name + "\\" + unpacker.Name));
+                unpacker.Uri.DownloadFileAsync(PluginsCfg.DefaultPath + "\\" + PluginsCfg.DefaultUnpackerPath + "\\" + PluginCfg.Name + "\\" + unpacker.Name));
             var result = await Task.WhenAll(results);
             return !result.Any(s => s.Equals(string.Empty));
         }

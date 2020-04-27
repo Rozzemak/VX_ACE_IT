@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.FileProviders;
 
@@ -9,5 +10,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.TargetApp.Interfaces
         Task<IFileInfo> GetTargetFileAsync(string pathToTarget);
 
         Task<bool> SearchForRelativeFileAsync(IFileInfo targetFile, string fileName, bool recursive = false);
+
+        public Task<bool> DownloadFileAsync(Uri fileUrl, string? localPath);
+        
     }
 }

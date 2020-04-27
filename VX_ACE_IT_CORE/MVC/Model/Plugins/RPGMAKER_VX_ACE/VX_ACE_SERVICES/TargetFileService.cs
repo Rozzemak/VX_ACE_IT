@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Flurl.Http;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.FileProviders.Physical;
+using VX_ACE_IT_CORE.MVC.Model.Configuration;
 using VX_ACE_IT_CORE.MVC.Model.TargetApp.Interfaces;
 using NotImplementedException = System.NotImplementedException;
 
@@ -28,6 +31,12 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_SERVICES
             return Task.FromResult(files.Any());
         }
 
+        public async Task<bool> DownloadFileAsync(Uri fileUrl, string? localPath)
+        {
+            var result = await fileUrl.DownloadFileAsync(localPath);
+            return !result.Equals(string.Empty);
+        }
+        
         /// <summary>
         /// Travel down the directory tree to find required file.
         /// </summary>
