@@ -101,7 +101,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.GameWindow
         {
             AddWork(new Task<List<object>>(() =>
             {
-                var cfg = _config.Configuration.GetSection(nameof(GameWindowCfg)).Get<GameWindowCfg>();
+                var cfg = _config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>().GameWindowCfg;
                 OnIconicRestore();
                 ShowWindowAsync(GameProcess.Process.MainWindowHandle, 5);
                 SetWindowPos(GameProcess.Process.MainWindowHandle, new IntPtr(-2), 0, 0, cfg.Width, cfg.Height, 0);

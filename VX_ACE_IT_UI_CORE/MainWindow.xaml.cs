@@ -48,7 +48,7 @@ namespace VX_ACE_IT_UI_CORE
             new Task(() =>
             {
                
-                if (!_config.Configuration.GetSection(nameof(AppCfg)).Get<AppCfg>().IsInitial)
+                if (!_config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>().AppCfg.IsInitial)
                 {
                     Application.Current.Dispatcher.Invoke(() =>
                     {
@@ -77,8 +77,8 @@ namespace VX_ACE_IT_UI_CORE
         {
             //_config.LoadXmlConfig();
 
-            var pluginsCfg =  _config.Configuration.GetSection(nameof(PluginsCfg)).Get<PluginsCfg>();
-            var window =  _config.Configuration.GetSection(nameof(GameWindowCfg)).Get<GameWindowCfg>();
+            var pluginsCfg =  _config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>().PluginsCfg;
+            var window =  _config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>().GameWindowCfg;
             WelcomeProcessNameTextBox.Text = pluginsCfg.DefaultProcessName;
             WelcomeResolution.Text = window.Width + "x" + window.Height;
             foreach (var windowDefaultResolution in window.DefaultResolutions)
@@ -95,9 +95,9 @@ namespace VX_ACE_IT_UI_CORE
 
         private void SubscribeEvents(Core core)
         {
-            core._controller.GameProcess.OnProcessFound += OnProcessFound;
-            core._controller.GameProcess.OnNoProcessFound += OnNoProcessFound;
-            core._controller.GameProcess.OnKill += GameProcess_OnKill;
+            core.Controller.GameProcess.OnProcessFound += OnProcessFound;
+            core.Controller.GameProcess.OnNoProcessFound += OnNoProcessFound;
+            core.Controller.GameProcess.OnKill += GameProcess_OnKill;
         }
 
         private void GameProcess_OnKill(object sender, EventArgs e)
@@ -106,9 +106,9 @@ namespace VX_ACE_IT_UI_CORE
             {
                 ShowWelcomeScreen();
                 MainWindow_Loaded(this, null);
-                var processCfg = _config.Configuration.GetSection(nameof(GameProcessCfg)).Get<GameProcessCfg>();
-                WelcomeProcessNameTextBox.Text = processCfg.ProcessName.Split('_').Length > 1
-                    ? processCfg.ProcessName.Split('_').First() : processCfg.ProcessName;
+                var processCfg = _config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>().PluginsCfg;
+                WelcomeProcessNameTextBox.Text = (processCfg.DefaultProcessName.Split('_').Length > 1
+                    ? processCfg.DefaultProcessName.Split('_').FirstOrDefault() : processCfg.DefaultProcessName) ?? "";
             });
         }
 
@@ -135,9 +135,9 @@ namespace VX_ACE_IT_UI_CORE
 
         private void InjectButton_Click(object sender, RoutedEventArgs e)
         {
-            _core._controller.SetWindowPosFromConfig();
-            var window = _config.Configuration.GetSection(nameof(GameWindowCfg)).Get<GameWindowCfg>();
-            _core._controller.SetWindowStyle(window.IsWindowBorderVisible ? WindowStyles.NoBorder : WindowStyles.Border);
+            _core.Controller.SetWindowPosFromConfig();
+            var window = _config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>().GameWindowCfg;
+            _core.Controller.SetWindowStyle(window.IsWindowBorderVisible ? WindowStyles.NoBorder : WindowStyles.Border);
         }
 
         private void CloseAllDialogs()
@@ -180,8 +180,8 @@ namespace VX_ACE_IT_UI_CORE
             }
             if (width != 0 && height != 0)
             {
-                var processCfg = _config.Configuration.GetSection(nameof(PluginsCfg)).Get<PluginsCfg>();
-                _core._controller.GameProcess.FetchProcess(processCfg.DefaultProcessName);
+                var pluginsCfg = _config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>().PluginsCfg;
+                _core.Controller.GameProcess.FetchProcess(pluginsCfg.DefaultProcessName);
             }
             else
             {
@@ -234,21 +234,21 @@ namespace VX_ACE_IT_UI_CORE
             //    "AdressValue: " + _core._controller.ProcessMethods.Rpm<int>(new IntPtr(Convert.ToUInt32(AdressTextBox.Text, 16))) + ""
             //    ));
             //int address = Convert.ToInt32(AdressTextBox.Text,16);
-            _debug.AddMessage<object>(new Message<object>((_core._controller.PluginService.Plugins.FirstOrDefault()?.UpdatableTypes.FirstOrDefault() as UpdatableType<Player>)?.Type.ToString()));
-            (_core._controller.PluginService.Plugins.First().UpdatableTypes.First() as UpdatableType<Player>)?.SetValue("Hp", new Numeric<int>(460, true).EngineValue);
+            _debug.AddMessage<object>(new Message<object>((_core.Controller.PluginService.Plugins.FirstOrDefault()?.UpdatableTypes.FirstOrDefault() as UpdatableType<Player>)?.Type.ToString()));
+            (_core.Controller.PluginService.Plugins.First().UpdatableTypes.First() as UpdatableType<Player>)?.SetValue("Hp", new Numeric<int>(460, true).EngineValue);
             new Task(() =>
             {
                 // Terraria cheatsheetTest: base: "THREADSTACK0"-00000FB8 + 0x54 + 0x24 + 0xEC + F0 + 388
                 while (false)
                 {
                     Thread.Sleep(22);
-                    var i = _core._controller.ProcessMethods.Rpm<int>(
-                        _core._controller.PluginService.Plugins.First().ModuleBaseAddr,
+                    var i = _core.Controller.ProcessMethods.Rpm<int>(
+                        _core.Controller.PluginService.Plugins.First().ModuleBaseAddr,
                         new List<IntPtr>() { new IntPtr(0x25A8B0), new IntPtr(0x30), new IntPtr(0x18), new IntPtr(0x20), new IntPtr(0x38) }, out var intPtr);
                     // <- rpgmaker_vx_ace 4:1.                                                                                                                                     
                     //  debug.AddMessage<object>(new Message<object>(                                                                               
                     //      "AdressValue: engine[" + new Numeric<int>(i).EngineValue + "] actual[" + new Numeric<int>(i).ActualValue + "]"
-                    _debug.AddMessage<object>(new Message<object>(i + "bs" + _core._controller.PluginService.Plugins.First().ModuleBaseAddr));
+                    _debug.AddMessage<object>(new Message<object>(i + "bs" + _core.Controller.PluginService.Plugins.First().ModuleBaseAddr));
                     //  ));
                     // if (i != 0) _core._controller.ProcessMethods.Wpm<int>(
                     //      _core._controller.VxAceModule.RgssBase, new Numeric<int>(250, true).EngineValue

@@ -7,21 +7,23 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using VX_ACE_IT_CORE.MVC.Model.Configuration;
+using VX_ACE_IT_CORE.MVC.Model.Configuration.Options.Interfaces;
 using VX_ACE_IT_CORE.MVC.Model.TargetApp.Interfaces;
 
 namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_SERVICES
 {
     public class TargetUnpackerService : ITargetUnpackerService
     {
-        private readonly IConfiguration _configuration;
+        private readonly IWritableOptions<GlobalConfigCfg> _configuration;
         private readonly ITargetFileService _fileService;
-        private PluginsCfg PluginsCfg => _configuration.GetSection(nameof(PluginsCfg)).Get<PluginsCfg>();
+        private PluginsCfg PluginsCfg => _configuration.Value.PluginsCfg;
         private PluginCfg PluginCfg => PluginsCfg.Plugins.FirstOrDefault(cfg => cfg.Name.Equals("VX_ACE"));
         
-        public TargetUnpackerService(IConfiguration configuration, IServiceProvider serviceProvider)
+        public TargetUnpackerService(IWritableOptions<GlobalConfigCfg> configuration, IServiceProvider serviceProvider)
         {
             _configuration = configuration;
             _fileService = serviceProvider.GetService<ITargetFileService>();
+            _configuration.Update(cfg => cfg.PluginsCfg.DefaultProcessName = "fuckThisShitImaOut");
         }
         public Task<bool> UnpackTargetExternalAsync(IFileInfo fileToUnpack, IFileInfo unpackerLocal, bool tryToDownloadNonLocal = true,
             string unpackerParams = "", bool forceWithoutParams = false)

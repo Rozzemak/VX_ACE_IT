@@ -4,5 +4,6 @@
     {
         public bool IsInitial { get; set; }
         public bool IsCheckForUpdates { get; set; }
+        public string Name { get; set; }
     }
 }
