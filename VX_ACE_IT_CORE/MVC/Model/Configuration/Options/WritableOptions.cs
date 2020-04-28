@@ -37,13 +37,17 @@ namespace VX_ACE_IT_CORE.MVC.Model.Configuration.Options
         public void Update(Action<T> applyChanges)
         {
             var (jObject, physicalPath) = UpdateInternal(applyChanges);
-            File.WriteAllText(physicalPath, JsonConvert.SerializeObject(jObject, Formatting.Indented));
+            var obj = JObject.Parse(JsonConvert.SerializeObject(jObject));
+            var parent = new JObject(new JProperty(_section, obj));
+            File.WriteAllText(physicalPath, JsonConvert.SerializeObject(parent, Formatting.Indented));
         }
 
         public async Task UpdateAsync(Action<T> applyChanges)
         {
             var (jObject, physicalPath) = UpdateInternal(applyChanges);
-            await File.WriteAllTextAsync(physicalPath, JsonConvert.SerializeObject(jObject, Formatting.Indented));
+            var obj = JObject.Parse(JsonConvert.SerializeObject(jObject));
+            var parent = new JObject(new JProperty(_section, obj));
+            await File.WriteAllTextAsync(physicalPath, JsonConvert.SerializeObject(parent, Formatting.Indented));
         }
 
         /// <summary>
