@@ -40,13 +40,13 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_SERVICES
         public async Task<bool> DownloadUnpackerAsync(Uri? unpacker, string? unpackerName, string? localPath, bool useDefaultPath = true)
         {
             var result = await _fileService.DownloadFileAsync(unpacker!, (!useDefaultPath ? localPath : null ) ?? PluginsCfg.DefaultPath + "\\" + PluginsCfg.DefaultUnpackerPath + "\\" + PluginCfg.Name + "\\" + 
-                                                          PluginCfg.UnpackersCfg.Unpackers.FirstOrDefault(cfg => cfg.Name.Equals(unpackerName))?.Name);
+                                                          PluginCfg.UnpackersCfg.FirstOrDefault(cfg => cfg.Name.Equals(unpackerName))?.Name);
             return result;
         }
         
         public async Task<bool> DownloadUnpackerAsync(string unpackerName)
         {
-            var unpacker = PluginCfg.UnpackersCfg.Unpackers.FirstOrDefault(cfg => cfg.Name.Equals(unpackerName));
+            var unpacker = PluginCfg.UnpackersCfg.FirstOrDefault(cfg => cfg.Name.Equals(unpackerName));
             var result = await _fileService.DownloadFileAsync(unpacker.Uri, PluginsCfg.DefaultPath + "\\" + PluginsCfg.DefaultUnpackerPath + "\\" + PluginCfg.Name + "\\" + 
                                                                             unpacker.Name);
             return result;
@@ -54,7 +54,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_SERVICES
 
         public async Task<bool> DownloadDefaultUnpackersAsync()
         {
-            var results = PluginCfg.UnpackersCfg.Unpackers.Select(unpacker =>
+            var results = PluginCfg.UnpackersCfg.Select(unpacker =>
                 unpacker.Uri.DownloadFileAsync(PluginsCfg.DefaultPath + "\\" + PluginsCfg.DefaultUnpackerPath + "\\" + PluginCfg.Name + "\\" + unpacker.Name));
             var result = await Task.WhenAll(results);
             return !result.Any(s => s.Equals(string.Empty));
@@ -63,7 +63,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_SERVICES
         public Task<bool> IsUnpackerLocalAsync(IFileInfo unpackerFile)
         {
             //todo: do check for custom path etc..
-            return Task.FromResult(PluginCfg.UnpackersCfg.Unpackers.
+            return Task.FromResult(PluginCfg.UnpackersCfg.
                 Select(unpacker => File.Exists($"Unpackers\\{unpacker.Name}\\{unpackerFile.Name}")).Any());
         }
     }

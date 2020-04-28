@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,24 +39,33 @@ namespace VX_ACE_IT_CORE.MVC.Model.Configuration.Options
             var (jObject, physicalPath) = UpdateInternal(applyChanges);
             File.WriteAllText(physicalPath, JsonConvert.SerializeObject(jObject, Formatting.Indented));
         }
-        
+
         public async Task UpdateAsync(Action<T> applyChanges)
         {
             var (jObject, physicalPath) = UpdateInternal(applyChanges);
             await File.WriteAllTextAsync(physicalPath, JsonConvert.SerializeObject(jObject, Formatting.Indented));
         }
 
-        private (JObject, string) UpdateInternal(Action<T> applyChanges)
+        /// <summary>
+        /// Updates options file based on action with current config. 
+        /// </summary>
+        /// <param name="applyChanges">Func that changes object to be serialized into file</param>
+        /// <returns>Json that contains changed data from original object</returns>
+        private (T? jObject, string physicalPath) UpdateInternal(Action<T> applyChanges)
         {
+            var settings = new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented,
+                MissingMemberHandling = MissingMemberHandling.Error,
+            };
             var fileProvider = _environment.ContentRootFileProvider;
             var fileInfo = fileProvider.GetFileInfo(_file);
             var physicalPath = fileInfo.PhysicalPath;
-            var jObject = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(physicalPath));
-            var sectionObject = jObject.TryGetValue(_section, out var section) ?
-                JsonConvert.DeserializeObject<T>(section.ToString()) : (Value ?? new T());
-
-            applyChanges(sectionObject);
-            jObject[_section] = JToken.Parse(JsonConvert.SerializeObject(sectionObject));
+            // todo: make this async.
+            var file = File.ReadAllText(physicalPath);
+            var jObjectTemp = JsonConvert.DeserializeObject<JObject>(file, settings);
+            var jObject = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(jObjectTemp![_section]), settings);
+            applyChanges(jObject!);
             return (jObject, physicalPath);
         }
     }

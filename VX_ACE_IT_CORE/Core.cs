@@ -34,9 +34,11 @@ namespace VX_ACE_IT_CORE
         private void SetupServices(IServiceCollection services, Config config)
         {
             //services.Configure<GlobalConfigCfg>(config.Configuration);
-            var readonlyConfig = config.Configuration.GetValue<GlobalConfigCfg>(nameof(GlobalConfigCfg));
+            var readonlyConfig = config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>();
             services.AddSingleton<IHostingEnvironment>(new HostingEnvironment(){ApplicationName = readonlyConfig.AppCfg.Name, EnvironmentName = "PC", 
-                ContentRootPath = Environment.CurrentDirectory, ContentRootFileProvider = new PhysicalFileProvider(Environment.CurrentDirectory)});
+                ContentRootPath = Environment.CurrentDirectory, ContentRootFileProvider = new PhysicalFileProvider(Environment.CurrentDirectory),
+                WebRootPath = Environment.CurrentDirectory, WebRootFileProvider = new PhysicalFileProvider(Environment.CurrentDirectory)
+            });
             services.AddOptions<GlobalConfigCfg>();
             services.ConfigureWritable<GlobalConfigCfg>(config.Configuration.GetSection(nameof(GlobalConfigCfg)));
             services.AddScoped<ITargetFileService, TargetFileService>();

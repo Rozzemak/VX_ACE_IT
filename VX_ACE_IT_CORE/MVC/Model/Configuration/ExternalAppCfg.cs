@@ -5,9 +5,11 @@ namespace VX_ACE_IT_CORE.MVC.Model.Configuration
     public class ExternalAppCfg
     {
         public string Name { get; set; }
+        
+        public string Path { get; set; }
         public Uri Uri { get; set; }
         
-        public string[] DefaultParams { get; set; }
+        public string DefaultParams { get; set; }
         
         public bool OnlyGuiAvailable { get; set; }
         

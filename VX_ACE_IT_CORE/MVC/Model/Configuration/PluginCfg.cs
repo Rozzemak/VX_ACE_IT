@@ -9,6 +9,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Configuration
         public int DefaultPrecision { get; set; }
         public GameProcessCfg GameProcessCfg { get; set; }
         public MemoryManipulationCfg MemoryManipulationCfg { get; set; }
-        public UnpackersCfg UnpackersCfg { get; set; }
+        public List<UnpackerCfg> UnpackersCfg { get; set; }
+        public List<PatcherCfg> PatchersCfg { get; set; }
     }
 }
