@@ -6,6 +6,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.Configuration
     {
         public string Name { get; set; }
         
+        public string Author { get; set; }
+        
         public string Path { get; set; }
         public Uri Uri { get; set; }
         

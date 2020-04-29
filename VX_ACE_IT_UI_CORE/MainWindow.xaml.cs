@@ -13,6 +13,8 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using System.Xml;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
 using VX_ACE_IT_CORE;
 using VX_ACE_IT_CORE.Debug;
 using VX_ACE_IT_CORE.MVC._Common;
@@ -20,6 +22,7 @@ using VX_ACE_IT_CORE.MVC.Model.Configuration;
 using VX_ACE_IT_CORE.MVC.Model.GameWindow;
 using VX_ACE_IT_CORE.MVC.Model.Plugins;
 using VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_TYPES;
+using VX_ACE_IT_CORE.MVC.Model.TargetApp.Interfaces;
 using VX_ACE_IT_UI_CORE;
 
 namespace VX_ACE_IT_UI_CORE
@@ -35,7 +38,6 @@ namespace VX_ACE_IT_UI_CORE
         private UIElement _processListDefaultItem = new UIElement();
 
 
-
         public MainWindow()
         {
             InitializeComponent();
@@ -47,7 +49,6 @@ namespace VX_ACE_IT_UI_CORE
             _config = new Config(_debug);
             new Task(() =>
             {
-               
                 if (!_config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>().AppCfg.IsInitial)
                 {
                     Application.Current.Dispatcher.Invoke(() =>
@@ -69,28 +70,52 @@ namespace VX_ACE_IT_UI_CORE
 
             // Just call the method to init found proceses.
             WelcomeProcessNameTextBox_OnTextChanged(WelcomeProcessNameTextBox, null);
-
-            InitUiFromConfig();
+            Task.Run(InitUiFromConfig);
         }
 
-        private void InitUiFromConfig()
+        private async Task InitUiFromConfig()
         {
             //_config.LoadXmlConfig();
+            Dispatcher.InvokeAsync(() =>
+            {
+                var pluginsCfg = _config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>()
+                    .PluginsCfg;
+                var window = _config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>()
+                    .GameWindowCfg;
+                WelcomeProcessNameTextBox.Text = pluginsCfg.DefaultProcessName;
+                WelcomeResolution.Text = window.Width + "x" + window.Height;
+                foreach (var windowDefaultResolution in window.DefaultResolutions)
+                {
+                    WelcomeResolution.Items.Add(new ComboBoxItem() {Content = windowDefaultResolution});
+                }
 
-            var pluginsCfg =  _config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>().PluginsCfg;
-            var window =  _config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>().GameWindowCfg;
-            WelcomeProcessNameTextBox.Text = pluginsCfg.DefaultProcessName;
-            WelcomeResolution.Text = window.Width + "x" + window.Height;
-            foreach (var windowDefaultResolution in window.DefaultResolutions)
+                WelcomePlugin.Text = pluginsCfg.DefaultPluginName;
+                foreach (var plugin in pluginsCfg.Plugins)
+                {
+                    WelcomePlugin.Items.Add(new ComboBoxItem() {Content = plugin.Name});
+                }
+
+                WelcomeBorder.IsChecked = window.IsWindowBorderVisible;
+            });
+            //var file = new OpenFileDialog(){Multiselect = false, Title = "Select title", DefaultExt = "exe"};
+            //file.ShowDialog(this);
+            await Dispatcher.InvokeAsync(async () =>
             {
-                WelcomeResolution.Items.Add(new ComboBoxItem(){ Content = windowDefaultResolution });
-            }
-            WelcomePlugin.Text = pluginsCfg.DefaultPluginName;
-            foreach (var plugin in pluginsCfg.Plugins)
-            {
-                WelcomePlugin.Items.Add(new ComboBoxItem(){ Content = plugin.Name });
-            }
-            WelcomeBorder.IsChecked = window.IsWindowBorderVisible;
+                var file = _core.Controller.ServiceProvider.GetService<ITargetFileService>();
+                // We can user this thread for picked file processing or Action for background work.
+                // Preferable for unpacker work on pick.
+                var result = await file.PickFoldersAsync(dialog =>
+                {
+                    dialog.ShowDialog();
+                    return Task.CompletedTask;
+                }, dialog =>
+                {
+                    // This is cool simulation of expensive background work that is not at all related to ui/backend important functionality. Eq asset unpacking etc.
+                    var file = dialog.FileName;
+                    return Task.CompletedTask;
+                }, false);
+            });
+            var idk = "";
         }
 
         private void SubscribeEvents(Core core)
@@ -106,9 +131,11 @@ namespace VX_ACE_IT_UI_CORE
             {
                 ShowWelcomeScreen();
                 MainWindow_Loaded(this, null);
-                var processCfg = _config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>().PluginsCfg;
+                var processCfg = _config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>()
+                    .PluginsCfg;
                 WelcomeProcessNameTextBox.Text = (processCfg.DefaultProcessName.Split('_').Length > 1
-                    ? processCfg.DefaultProcessName.Split('_').FirstOrDefault() : processCfg.DefaultProcessName) ?? "";
+                    ? processCfg.DefaultProcessName.Split('_').FirstOrDefault()
+                    : processCfg.DefaultProcessName) ?? "";
             });
         }
 
@@ -165,7 +192,7 @@ namespace VX_ACE_IT_UI_CORE
             if (WelcomeResolution.Text != null)
             {
                 var text = (WelcomeResolution.SelectedItem as ComboBoxItem)?.Content.ToString() ??
-                      WelcomeResolution.Text;
+                           WelcomeResolution.Text;
                 const string re1 = "(\\d+)"; // Integer Number 1
                 const string re2 = "(.)"; // Any Single Character 1
                 const string re3 = "(\\d+)"; // Integer Number 2
@@ -178,9 +205,11 @@ namespace VX_ACE_IT_UI_CORE
                     height = Math.Abs(int.Parse(m.Groups[3].Value));
                 }
             }
+
             if (width != 0 && height != 0)
             {
-                var pluginsCfg = _config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>().PluginsCfg;
+                var pluginsCfg = _config.Configuration.GetSection(nameof(GlobalConfigCfg)).Get<GlobalConfigCfg>()
+                    .PluginsCfg;
                 _core.Controller.GameProcess.FetchProcess(pluginsCfg.DefaultProcessName);
             }
             else
@@ -222,7 +251,6 @@ namespace VX_ACE_IT_UI_CORE
                 Thread.Sleep(10);
                 Environment.Exit(0);
             }).Start();
-
         }
 
         private void RPMButton_OnClick(object sender, RoutedEventArgs e)
@@ -234,8 +262,11 @@ namespace VX_ACE_IT_UI_CORE
             //    "AdressValue: " + _core._controller.ProcessMethods.Rpm<int>(new IntPtr(Convert.ToUInt32(AdressTextBox.Text, 16))) + ""
             //    ));
             //int address = Convert.ToInt32(AdressTextBox.Text,16);
-            _debug.AddMessage<object>(new Message<object>((_core.Controller.PluginService.Plugins.FirstOrDefault()?.UpdatableTypes.FirstOrDefault() as UpdatableType<Player>)?.Type.ToString()));
-            (_core.Controller.PluginService.Plugins.First().UpdatableTypes.First() as UpdatableType<Player>)?.SetValue("Hp", new Numeric<int>(460, true).EngineValue);
+            _debug.AddMessage<object>(new Message<object>(
+                (_core.Controller.PluginService.Plugins.FirstOrDefault()?.UpdatableTypes.FirstOrDefault() as
+                    UpdatableType<Player>)?.Type.ToString()));
+            (_core.Controller.PluginService.Plugins.First().UpdatableTypes.First() as UpdatableType<Player>)?.SetValue(
+                "Hp", new Numeric<int>(460, true).EngineValue);
             new Task(() =>
             {
                 // Terraria cheatsheetTest: base: "THREADSTACK0"-00000FB8 + 0x54 + 0x24 + 0xEC + F0 + 388
@@ -244,18 +275,21 @@ namespace VX_ACE_IT_UI_CORE
                     Thread.Sleep(22);
                     var i = _core.Controller.ProcessMethods.Rpm<int>(
                         _core.Controller.PluginService.Plugins.First().ModuleBaseAddr,
-                        new List<IntPtr>() { new IntPtr(0x25A8B0), new IntPtr(0x30), new IntPtr(0x18), new IntPtr(0x20), new IntPtr(0x38) }, out var intPtr);
+                        new List<IntPtr>()
+                        {
+                            new IntPtr(0x25A8B0), new IntPtr(0x30), new IntPtr(0x18), new IntPtr(0x20), new IntPtr(0x38)
+                        }, out var intPtr);
                     // <- rpgmaker_vx_ace 4:1.                                                                                                                                     
                     //  debug.AddMessage<object>(new Message<object>(                                                                               
                     //      "AdressValue: engine[" + new Numeric<int>(i).EngineValue + "] actual[" + new Numeric<int>(i).ActualValue + "]"
-                    _debug.AddMessage<object>(new Message<object>(i + "bs" + _core.Controller.PluginService.Plugins.First().ModuleBaseAddr));
+                    _debug.AddMessage<object>(
+                        new Message<object>(i + "bs" + _core.Controller.PluginService.Plugins.First().ModuleBaseAddr));
                     //  ));
                     // if (i != 0) _core._controller.ProcessMethods.Wpm<int>(
                     //      _core._controller.VxAceModule.RgssBase, new Numeric<int>(250, true).EngineValue
                     //      , new List<IntPtr>() { new IntPtr(0x25A8B0), new IntPtr(0x30), new IntPtr(0x18), new IntPtr(0x20), new IntPtr(0x38) });}}
                 }
             }).Start();
-
         }
 
         private void ListBoxItem_OnSelected(object sender, RoutedEventArgs e)
@@ -278,30 +312,32 @@ namespace VX_ACE_IT_UI_CORE
                         if (!Is64BitProcess(process))
                         {
                             var element = CloneUIElement(_processListDefaultItem);
-                            ((ListBoxItem)element).Content = process.ProcessName + "_" + process.Id;
-                            ((ListBoxItem)element).Visibility = Visibility.Visible;
-                            ((ListBoxItem)element).Selected += ListBoxItem_OnSelected;
+                            ((ListBoxItem) element).Content = process.ProcessName + "_" + process.Id;
+                            ((ListBoxItem) element).Visibility = Visibility.Visible;
+                            ((ListBoxItem) element).Selected += ListBoxItem_OnSelected;
                             ProcessListListBox.Items.Add(element);
                         }
                         else
                         {
                             var element = CloneUIElement(_processListDefaultItem);
-                            ((ListBoxItem)element).Content = process.ProcessName + "-x64-" + process.Id;
-                            ((ListBoxItem)element).Visibility = Visibility.Visible;
-                            ((ListBoxItem)element).Selected += ListBoxItem_OnSelected;
-                            ((ListBoxItem)element).Background = Brushes.LightCoral;
-                            ((ListBoxItem)element).ToolTip = "Not selectable, \nProcess is x64 => not compatible";
-                            ((ListBoxItem)element).Focusable = false;
+                            ((ListBoxItem) element).Content = process.ProcessName + "-x64-" + process.Id;
+                            ((ListBoxItem) element).Visibility = Visibility.Visible;
+                            ((ListBoxItem) element).Selected += ListBoxItem_OnSelected;
+                            ((ListBoxItem) element).Background = Brushes.LightCoral;
+                            ((ListBoxItem) element).ToolTip = "Not selectable, \nProcess is x64 => not compatible";
+                            ((ListBoxItem) element).Focusable = false;
                             ProcessListListBox.Items.Add(element);
                         }
                     }
 
-                    ProcessListExpander.IsExpanded = System.Diagnostics.Process.GetProcessesByName(processName).Length > 0;
+                    ProcessListExpander.IsExpanded =
+                        System.Diagnostics.Process.GetProcessesByName(processName).Length > 0;
                 }
             });
         }
 
         #region SharedCommonLogic
+
         /// <summary>
         /// Clones UIElement via xaml reader/writer.
         /// </summary>
@@ -312,7 +348,7 @@ namespace VX_ACE_IT_UI_CORE
             var xamlElement = XamlWriter.Save(uiElement);
             var xamlString = new StringReader(xamlElement);
             var xmlTextReader = new XmlTextReader(xamlString);
-            return (UIElement)XamlReader.Load(xmlTextReader);
+            return (UIElement) XamlReader.Load(xmlTextReader);
         }
 
         private bool Is64BitProcess(System.Diagnostics.Process process)
@@ -328,8 +364,8 @@ namespace VX_ACE_IT_UI_CORE
 
         [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool IsWow64Process([In] IntPtr processHandle, [Out, MarshalAs(UnmanagedType.Bool)] out bool wow64Process);
-
+        public static extern bool IsWow64Process([In] IntPtr processHandle,
+            [Out, MarshalAs(UnmanagedType.Bool)] out bool wow64Process);
 
         #endregion
 

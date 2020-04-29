@@ -6,8 +6,6 @@ namespace VX_ACE_IT_CORE.MVC.Model.TargetApp.Interfaces
 {
     public interface ITargetUnpackerService
     {
-        //todo: insert unpacker default params into appsettings, plugin dependable should then be visible in frontend and update by path
-
         /// <summary>
         /// Checks whether unpacker exists, if not downloads it from url from config, then uses cmd params from consumer or default from cfg.
         /// </summary>
@@ -34,6 +32,8 @@ namespace VX_ACE_IT_CORE.MVC.Model.TargetApp.Interfaces
 
         public Task<bool> DownloadUnpackerAsync(string unpackerName);
 
+        public Task<bool> ExtractUnpackerAsync(string unpackerName);
+        
         /// <summary>
         /// Downloads all unpackers with defined Uri ands saves them locally.
         /// </summary>
