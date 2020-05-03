@@ -24,6 +24,7 @@ namespace VX_ACE_IT_CORE.MVC.Model.Plugins.RPGMAKER_VX_ACE.VX_ACE_SERVICES
         {
             _configuration = configuration;
             _fileService = serviceProvider.GetService<ITargetFileService>();
+            // ReSharper disable once AsyncConverter.AsyncWait
             Task.Run( () => DownloadUnpackerAsync("RPGMakerDecrypter_1.0")).Wait();
             ExtractUnpackerAsync("RPGMakerDecrypter_1.0");
         }

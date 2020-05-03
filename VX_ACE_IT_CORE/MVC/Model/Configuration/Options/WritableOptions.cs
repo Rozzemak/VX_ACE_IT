@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -42,14 +44,14 @@ namespace VX_ACE_IT_CORE.MVC.Model.Configuration.Options
             File.WriteAllText(physicalPath, JsonConvert.SerializeObject(parent, Formatting.Indented));
         }
 
-        public async Task UpdateAsync(Action<T> applyChanges)
+        public Task UpdateAsync(Action<T> applyChanges)
         {
             var (jObject, physicalPath) = UpdateInternal(applyChanges);
             var obj = JObject.Parse(JsonConvert.SerializeObject(jObject));
             var parent = new JObject(new JProperty(_section, obj));
-            await File.WriteAllTextAsync(physicalPath, JsonConvert.SerializeObject(parent, Formatting.Indented));
+            return File.WriteAllTextAsync(physicalPath, JsonConvert.SerializeObject(parent, Formatting.Indented));
         }
-
+        
         /// <summary>
         /// Updates options file based on action with current config. 
         /// </summary>
